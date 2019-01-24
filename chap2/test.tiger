@@ -1,8 +1,0 @@
-/* var 123
-	/* var 123 */
-	var 123	
-	is still a comment
-*/
-var 123 /* this is the only actual token */
-
-/* var 123 /* var 123 /* var 123 */ var 123 */ var 123 */
