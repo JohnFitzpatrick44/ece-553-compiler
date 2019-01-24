@@ -9,36 +9,35 @@ val stringStartPos = ref ~1
 
 val commentCount = ref 0
 
+fun getEscapedChar c =
+	case c of
+		  "\\^@" => Char.toString(chr(0))
+		| "\\^G" => Char.toString(chr(7))
+		| "\\^H" => Char.toString(chr(8))
+		| "\\^I" => Char.toString(chr(9))
+		| "\\^J" => Char.toString(chr(10))
+		| "\\^K" => Char.toString(chr(11))
+		| "\\^L" => Char.toString(chr(12))
+		| "\\^M" => Char.toString(chr(13))
+		| "\\^Z" => Char.toString(chr(26))
+		| "\\^[" => Char.toString(chr(27))
+		| "\\n"  => Char.toString(chr(10))
+		| "\\t"  => Char.toString(chr(9))
+		| "\\\"" => Char.toString(chr(34))
+		| "\\"	 => Char.toString(chr(92))
+		| a => a
+
 fun eof() = let val pos = hd(!linePos)
 	    in
-			(if !stringStartPos >= 0 then ErrorMsg.error !stringStartPos (" open string at end of file") else ());
+			(if (!stringStartPos) >= 0 then ErrorMsg.error (!stringStartPos) (" open string at end of file") else ());
+			(if (!commentCount) > 0 then ErrorMsg.error pos (" open comment at end of file") else ());
 			Tokens.EOF(pos,pos)
 	    end
 %%
-%s COMMENT_STATE, STRING_STATE;
+%s COMMENT_STATE STRING_STATE;
 escapeDigits = ([0-1][0-9][0-9])|(2[0-4][0-9])|(25[0-5]);
 %%
-
-\/\* => (
-    commentCount := !commentCount+1;
-    YYBEGIN COMMENT_STATE;
-    continue()
-);
-
-<COMMENT_STATE>\*\/ => (
-    commentCount := !commentCount-1;
-    if (!commentCount) = 0 then YYBEGIN INITIAL else ();
-    continue()
-);
-
-<COMMENT_STATE>[^\n] 	=> (continue());
-\n	=> (
-    lineNum := !lineNum+1;
-    linePos := yypos :: !linePos;
-    continue()
-);
-
-<INITIAL>[ \t]+	=> (continue());
+<INITIAL>[\ \t]+	=> (continue());
 <INITIAL>"type" 	=> (Tokens.TYPE(yypos,yypos+4));
 <INITIAL>"var"		=> (Tokens.VAR(yypos,yypos+3));
 <INITIAL>"function"	=> (Tokens.FUNCTION(yypos,yypos+8));
@@ -82,17 +81,45 @@ escapeDigits = ([0-1][0-9][0-9])|(2[0-4][0-9])|(25[0-5]);
 <INITIAL>[0-9]+		=> (Tokens.INT(valOf (Int.fromString yytext),yypos,yypos+String.size(yytext)));
 <INITIAL>[A-Za-z][A-Za-z0-9_]* => (Tokens.ID(yytext,yypos,yypos+String.size(yytext)));
 
+
+<INITIAL>\/\* => (
+    commentCount := (!commentCount)+1;
+    YYBEGIN COMMENT_STATE;
+    continue()
+);
+<COMMENT_STATE>\/\* => (
+    commentCount := (!commentCount)+1;
+    continue()
+);
+<COMMENT_STATE>\*\/ => (
+    commentCount := (!commentCount)-1;
+    if (!commentCount) = 0 then YYBEGIN INITIAL else ();
+    continue()
+);
+<COMMENT_STATE>[^\n] 	=> (continue());
+
+
 <INITIAL>\"			=> (YYBEGIN STRING_STATE; partialString := ""; stringStartPos := yypos; continue());
 <STRING_STATE>\"	=> (	YYBEGIN INITIAL; 
-							val result = !partialString; 
-							val pos = !stringStartPos; 
-							partialString := ""; 
-							stringStartPos := ~1; 
-							Tokens.STRING(result, pos, yypos+1)
+							let val result = (!partialString) 
+								val pos = (!stringStartPos)
+							in 
+								partialString := ""; 
+								stringStartPos := ~1; 
+								Tokens.STRING(result, pos, yypos+1)
+							end
 						); 
-<STRING_STATE>\\[\\\"nt]	=> ();
-<STRING_STATE>\\{escapeDigits}	=> ();
-<STRING_STATE>\\.			=> (ErrorMsg.error yypos (" illegal escape character " ^ yytext); continue());
-<STRING_STATE>.				=> (partialString := !partialString ^ yytext; continue());
 
-<INITIAL>. => (ErrorMsg.error yypos ("Failed parsing " ^ yytext); continue());
+<STRING_STATE>\\(([\\\"nt])|("^"[@GHIJKLMZ\[]))	=> (partialString := (!partialString) ^ (getEscapedChar yytext); continue());
+<STRING_STATE>\\{escapeDigits}	=> (partialString := (!partialString) ^ (Char.toString(chr(valOf (Int.fromString (String.substring(yytext,1,3)))))); continue());
+<STRING_STATE>\\[\s]+\\		=> (continue());
+<STRING_STATE>\\.			=> (ErrorMsg.error yypos (" illegal escape character " ^ yytext); continue());
+<STRING_STATE>.				=> (partialString := (!partialString) ^ yytext; continue());
+<STRING_STATE>\n 	=> (ErrorMsg.error yypos ("Illegal new line in string"); continue());
+
+\n	=> (
+    lineNum := (!lineNum)+1;
+    linePos := yypos :: (!linePos);
+    continue()
+);
+. => (ErrorMsg.error yypos ("Failed parsing " ^ yytext); continue());
