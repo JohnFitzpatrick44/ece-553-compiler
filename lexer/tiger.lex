@@ -3,42 +3,28 @@ type lexresult = Tokens.token
 
 val lineNum = ErrorMsg.lineNum
 val linePos = ErrorMsg.linePos
+fun newLine pos = (lineNum := !lineNum + 1; linePos := pos :: !linePos)
 
 val partialString = ref ""
 val stringStartPos = ref ~1
 
 val commentCount = ref 0
 
+fun getControlChar c = String.str(chr(ord(String.sub(c,2)) - 64))
+
 fun eof() = let val pos = hd(!linePos)
 	    in
-			(if !stringStartPos >= 0 then ErrorMsg.error !stringStartPos (" open string at end of file") else ());
+			(if (!stringStartPos) >= 0 then ErrorMsg.error (!stringStartPos) ("Open string at end of file") else ());
+			(if (!commentCount) <> 0 then ErrorMsg.error pos ("Open comment at end of file") else ());
 			Tokens.EOF(pos,pos)
 	    end
 %%
-%s COMMENT_STATE, STRING_STATE;
+%s COMMENT_STATE STRING_STATE;
 escapeDigits = ([0-1][0-9][0-9])|(2[0-4][0-9])|(25[0-5]);
 %%
+<INITIAL>\n 			=> (newLine yypos; continue());
+<INITIAL>(" "|\t|\r)	=> (continue());
 
-\/\* => (
-    commentCount := !commentCount+1;
-    YYBEGIN COMMENT_STATE;
-    continue()
-);
-
-<COMMENT_STATE>\*\/ => (
-    commentCount := !commentCount-1;
-    if (!commentCount) = 0 then YYBEGIN INITIAL else ();
-    continue()
-);
-
-<COMMENT_STATE>[^\n] 	=> (continue());
-\n	=> (
-    lineNum := !lineNum+1;
-    linePos := yypos :: !linePos;
-    continue()
-);
-
-<INITIAL>[ \t]+	=> (continue());
 <INITIAL>"type" 	=> (Tokens.TYPE(yypos,yypos+4));
 <INITIAL>"var"		=> (Tokens.VAR(yypos,yypos+3));
 <INITIAL>"function"	=> (Tokens.FUNCTION(yypos,yypos+8));
@@ -79,20 +65,45 @@ escapeDigits = ([0-1][0-9][0-9])|(2[0-4][0-9])|(25[0-5]);
 <INITIAL>";"		=> (Tokens.SEMICOLON(yypos,yypos+1));
 <INITIAL>":"		=> (Tokens.COLON(yypos,yypos+1));
 <INITIAL>","		=> (Tokens.COMMA(yypos,yypos+1));
-<INITIAL>[0-9]+		=> (Tokens.INT(valOf (Int.fromString yytext),yypos,yypos+String.size(yytext)));
-<INITIAL>[A-Za-z][A-Za-z0-9_]* => (Tokens.ID(yytext,yypos,yypos+String.size(yytext)));
+
+<INITIAL>[0-9]+					=> (Tokens.INT(valOf (Int.fromString yytext),yypos,yypos+String.size(yytext)));
+<INITIAL>[A-Za-z][A-Za-z0-9_]* 	=> (Tokens.ID(yytext,yypos,yypos+String.size(yytext)));
+<INITIAL>[0-9_][A-Za-z0-9_]* 	=> (ErrorMsg.error yypos ("Invalid identifier \"" ^ yytext ^ "\""); continue());
+
+<INITIAL>\/\* => (
+    commentCount := (!commentCount)+1;
+    YYBEGIN COMMENT_STATE;
+    continue()
+);
+<COMMENT_STATE>\/\* => (
+    commentCount := (!commentCount)+1;
+    continue()
+);
+<COMMENT_STATE>\*\/ => (
+    commentCount := (!commentCount)-1;
+    if (!commentCount) = 0 then YYBEGIN INITIAL else ();
+    continue()
+);
+<COMMENT_STATE>\n 	=> (newLine yypos; continue());
+<COMMENT_STATE>. 	=> (continue());
 
 <INITIAL>\"			=> (YYBEGIN STRING_STATE; partialString := ""; stringStartPos := yypos; continue());
 <STRING_STATE>\"	=> (	YYBEGIN INITIAL; 
-							val result = !partialString; 
-							val pos = !stringStartPos; 
-							partialString := ""; 
-							stringStartPos := ~1; 
-							Tokens.STRING(result, pos, yypos+1)
+							let val result = (!partialString) 
+								val pos = (!stringStartPos)
+							in 
+								partialString := ""; 
+								stringStartPos := ~1; 
+								Tokens.STRING(result, pos, yypos+1)
+							end
 						); 
-<STRING_STATE>\\[\\\"nt]	=> ();
-<STRING_STATE>\\{escapeDigits}	=> ();
-<STRING_STATE>\\.			=> (ErrorMsg.error yypos (" illegal escape character " ^ yytext); continue());
-<STRING_STATE>.				=> (partialString := !partialString ^ yytext; continue());
 
-<INITIAL>. => (ErrorMsg.error yypos ("Failed parsing " ^ yytext); continue());
+<STRING_STATE>\\[\\\"nt]	=> (partialString := (!partialString) ^ yytext; continue());
+<STRING_STATE>\\\^[@A-Z\[\\\]\^_]	=> (partialString := (!partialString) ^ (getControlChar yytext); continue());
+<STRING_STATE>\\{escapeDigits}	=> (partialString := (!partialString) ^ (Char.toString(chr(valOf (Int.fromString (String.substring(yytext,1,3)))))); continue());
+<STRING_STATE>\\[\ \n\t\f\r]+\\		=> (continue());
+<STRING_STATE>\\.			=> (ErrorMsg.error yypos ("Illegal escape character \"" ^ yytext^"\""); continue());
+<STRING_STATE>\n 			=> (ErrorMsg.error yypos ("Illegal new line within a string"); newLine yypos; continue());
+<STRING_STATE>.				=> (partialString := (!partialString) ^ yytext; continue());
+
+. => (ErrorMsg.error yypos ("Failed parsing text \"" ^ yytext ^ "\""); continue());
