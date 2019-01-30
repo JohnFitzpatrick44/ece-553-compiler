@@ -1,4 +1,4 @@
-type pos = int;
+type pos = int
 type lexresult = Tokens.token
 
 val lineNum = ErrorMsg.lineNum
