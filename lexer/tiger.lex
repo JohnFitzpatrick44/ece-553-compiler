@@ -35,7 +35,7 @@ escapeDigits = ([0-1][0-9][0-9])|(2[0-4][0-9])|(25[0-5]);
 eol = ("\013\010"|"\010"|"\013");
 %%
 <INITIAL>\n 			=> (newLine yypos; continue());
-<INITIAL>(" "|\t|\r)	=> (continue());
+<INITIAL>[\ \n\t\f\r]	=> (continue());
 
 <INITIAL>"type" 	=> (Tokens.TYPE(yypos,yypos+4));
 <INITIAL>"var"	        => (Tokens.VAR(yypos,yypos+3));
