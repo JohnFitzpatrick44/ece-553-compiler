@@ -26,6 +26,7 @@ in
 			  ErrorMsg.look(hd (!commentPos)))
      else ());
     Tokens.EOF(pos,pos)
+	      
 end
 		
 %%
@@ -37,7 +38,7 @@ eol = ("\013\010"|"\010"|"\013");
 <INITIAL>(" "|\t|\r)	=> (continue());
 
 <INITIAL>"type" 	=> (Tokens.TYPE(yypos,yypos+4));
-<INITIAL>"var"	p	=> (Tokens.VAR(yypos,yypos+3));
+<INITIAL>"var"	        => (Tokens.VAR(yypos,yypos+3));
 <INITIAL>"function"	=> (Tokens.FUNCTION(yypos,yypos+8));
 <INITIAL>"break"	=> (Tokens.BREAK(yypos,yypos+5));
 <INITIAL>"of"		=> (Tokens.OF(yypos,yypos+2));
