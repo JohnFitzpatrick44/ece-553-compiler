@@ -9,26 +9,7 @@ val commentCount = ref 0;
 fun eof() = let val pos = hd(!linePos) in Tokens.EOF(pos,pos) end;
 
 %%
-
-%s COMMENT_STATE;
-
 %%
-
-[\ \t]+ => (lex());
-    
-\/\* => (
-    commentCount := !commentCount+1;
-    YYBEGIN COMMENT_STATE;
-    lex()
-);
-
-<COMMENT_STATE> \*\/ => (
-    commentCount := !commentCount-1;
-    if (!commentCount) = 0 then YYBEGIN INITIAL else ();
-    lex()
-);
-
-<COMMENT_STATE> . => (lex());
 
 \n	=> (lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
 <INITIAL> ","	=> (Tokens.COMMA(yypos,yypos+1));
