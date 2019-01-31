@@ -17,12 +17,12 @@ fun eof() = let
 in
     (if (!stringStartPos) >= 0
      then ErrorMsg.error pos
-			 ("Unterminated string, starting at " ^
+			 ("Unterminated string starting at " ^
 			 (ErrorMsg.look(!stringStartPos)))
      else ());
     (if not (null (!commentPos))
      then ErrorMsg.error pos
-			 ("Unterminated comment, starting at " ^
+			 ("Unterminated comment starting at " ^
 			  ErrorMsg.look(hd (!commentPos)))
      else ());
     Tokens.EOF(pos,pos)
