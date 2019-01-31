@@ -7,4 +7,3 @@ errormsg.sml
 tokens.sig
 tokens.sml
 tiger.lex
-tester.sml
