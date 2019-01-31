@@ -16,11 +16,13 @@ fun eof() = let
     val pos = hd(!linePos);
 in
     (if (!stringStartPos) >= 0
-     then ErrorMsg.error (!stringStartPos) ("Open string at end of file")
+     then ErrorMsg.error pos
+			 ("Unterminated string, starting at " ^
+			 (ErrorMsg.look(!stringStartPos)))
      else ());
     (if not (null (!commentPos))
      then ErrorMsg.error pos
-			 ("Open comment at end of file starting at " ^
+			 ("Unterminated comment, starting at " ^
 			  ErrorMsg.look(hd (!commentPos)))
      else ());
     Tokens.EOF(pos,pos)
@@ -35,7 +37,7 @@ eol = ("\013\010"|"\010"|"\013");
 <INITIAL>(" "|\t|\r)	=> (continue());
 
 <INITIAL>"type" 	=> (Tokens.TYPE(yypos,yypos+4));
-<INITIAL>"var"		=> (Tokens.VAR(yypos,yypos+3));
+<INITIAL>"var"	p	=> (Tokens.VAR(yypos,yypos+3));
 <INITIAL>"function"	=> (Tokens.FUNCTION(yypos,yypos+8));
 <INITIAL>"break"	=> (Tokens.BREAK(yypos,yypos+5));
 <INITIAL>"of"		=> (Tokens.OF(yypos,yypos+2));
@@ -110,7 +112,7 @@ eol = ("\013\010"|"\010"|"\013");
 <STRING_STATE>\\[\\\"nt]	=> (partialString := (!partialString) ^ yytext; continue());
 <STRING_STATE>\\\^[@A-Z\[\\\]\^_]	=> (partialString := (!partialString) ^ (getControlChar yytext); continue());
 <STRING_STATE>\\{escapeDigits}	=> (partialString := (!partialString) ^ (Char.toString(chr(valOf (Int.fromString (String.substring(yytext,1,3)))))); continue());
-<STRING_STATE>\\[\ \n\t\f\r]+\\		=> (continue());
+<STRING_STATE>\\[\ \t\f\r]+\\		=> (continue());
 <STRING_STATE>\\.			=> (ErrorMsg.error yypos ("Illegal escape character \"" ^ yytext^"\""); continue());
 <STRING_STATE>\n 			=> (ErrorMsg.error yypos ("Illegal new line within a string"); newLine yypos; continue());
 <STRING_STATE>.				=> (partialString := (!partialString) ^ yytext; continue());
