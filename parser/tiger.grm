@@ -81,7 +81,6 @@ exp:  INT					  											()
 	  | STRING															()
     | NIL																	()    
     | MINUS exp %prec UMINUS							()
-    | exp op exp													()
     | LPAREN exps RPAREN									()
     | ID LBRACK exp RBRACK OF exp					()
     | ID LBRACE recdecs RBRACE						()
@@ -94,19 +93,18 @@ exp:  INT					  											()
     | FOR ID ASSIGN exp TO exp DO exp			()
     | BREAK																()
     | LET decs IN exps END								()
-  
-op:   PLUS  ()
-		| MINUS ()
-    | TIMES ()
-    | DIVIDE 	()
-    | EQ 		()
-    | NEQ 	()
-    | GT 		()
-    | LT 		()
-    | GE 		()
-    | LE 		()
-    | AND 	()
-    | OR		() 
+    | exp PLUS exp												()
+    | exp MINUS exp												()
+    | exp TIMES exp												()
+    | exp DIVIDE exp											()
+    | exp EQ exp													()
+    | exp NEQ exp													()
+    | exp GT exp													()
+    | exp LT exp													()
+    | exp GE exp													()
+    | exp LE exp													()
+    | exp AND exp													()
+    | exp OR exp 													()
   
 exps: exp exps_end		()
 		| 	()
@@ -128,3 +126,15 @@ args_end: 	COMMA exp args_end ()
     
 opt_else: 	ELSE exp 						()
 					| 										()
+          
+
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
