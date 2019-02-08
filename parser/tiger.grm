@@ -10,7 +10,7 @@
   | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF 
   | BREAK | NIL
   | FUNCTION | VAR | TYPE 
-  | UMINUS
+  | UMINUS | BASE
 
 %nonterm  program | decs | dec | vardec | fundec | tydec | ty | tyfields | tyfields_end | lvalue | exp | op | exps | exps_end | recdecs | recdecs_end | args | args_end | opt_else 
 
@@ -31,6 +31,8 @@
 %value INT (1)
 %value STRING ("")
 
+%nonassoc BASE
+%nonassoc LBRACK ELSE
 %left OR
 %left AND
 %nonassoc EQ NEQ LT LE GT GE 
@@ -73,7 +75,7 @@ tyfields: ID COLON ID tyfields_end	()
 tyfields_end: COMMA ID COLON ID tyfields_end	()
 		|																					()
     
-lvalue:  ID													()
+lvalue:  ID %prec BASE													()
 			 | lvalue DOT ID							()
        | lvalue LBRACK exp RBRACK		()
 
@@ -81,33 +83,30 @@ exp:  INT					  											()
 	  | STRING															()
     | NIL																	()    
     | MINUS exp %prec UMINUS							()
-    | exp op exp													()
     | LPAREN exps RPAREN									()
-    | ID LBRACK exp RBRACK OF exp					()
-    | ID LBRACE recdecs RBRACE						()
-    | NEW ID 															()
+    | ID LBRACK exp RBRACK OF exp %prec BASE					()
+    | ID LBRACE recdecs RBRACE					()
     | lvalue															()
     | ID LPAREN args RPAREN								()
     | lvalue DOT ID LPAREN args RPAREN		()
-    | lvalue ASSIGN exp										()
-    | IF exp THEN exp opt_else						()
-    | WHILE exp DO exp										()
-    | FOR ID ASSIGN exp TO exp DO exp			()
+    | lvalue ASSIGN exp %prec BASE										()
+    | IF exp THEN exp opt_else	%prec BASE					()
+    | WHILE exp DO exp %prec BASE								()
+    | FOR ID ASSIGN exp TO exp DO exp %prec BASE			()
     | BREAK																()
     | LET decs IN exps END								()
-  
-op:   PLUS  ()
-		| MINUS ()
-    | TIMES ()
-    | DIV 	()
-    | EQ 		()
-    | NEQ 	()
-    | GT 		()
-    | LT 		()
-    | GE 		()
-    | LE 		()
-    | AND 	()
-    | OR		() 
+    | exp PLUS exp												()
+    | exp MINUS exp												()
+    | exp TIMES exp												()
+    | exp DIVIDE exp											()
+    | exp EQ exp													()
+    | exp NEQ exp													()
+    | exp GT exp													()
+    | exp LT exp													()
+    | exp GE exp													()
+    | exp LE exp													()
+    | exp AND exp													()
+    | exp OR exp 													()
   
 exps: exp exps_end		()
 		| 	()
@@ -115,7 +114,7 @@ exps: exp exps_end		()
 exps_end: SEMICOLON exp exps_end		()
 		|		()
     
-recdecs: ID EQ exp redecs_end 				()
+recdecs: ID EQ exp recdecs_end 				()
 			  | 										 			  ()
        
 recdecs_end:  COMMA ID EQ exp recdecs_end ()
@@ -127,7 +126,7 @@ args: 	exp args_end 		()
 args_end: 	COMMA exp args_end ()
     			| 									 ()
     
-opt_else: 	ELSE exp 						()
+opt_else: 	ELSE exp %prec BASE						()
 					| 										()
           
 
