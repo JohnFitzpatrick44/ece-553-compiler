@@ -12,7 +12,7 @@
   | FUNCTION | VAR | TYPE 
   | UMINUS | BASE
 
-%nonterm  program | decs | dec | vardec | fundec | tydec | ty | tyfields | tyfields_end | lvalue | exp | op | exps | exps_end | recdecs | recdecs_end | args | args_end | opt_else 
+%nonterm  program | decs | dec | vardec | fundec | tydec | ty | tyfields | tyfields_end | lvalue | exp | op | exps | exps_end | recdecs | recdecs_end | args | args_end
 
 %pos int
 %verbose
@@ -90,7 +90,8 @@ exp:  INT					  											()
     | ID LPAREN args RPAREN								()
     | lvalue DOT ID LPAREN args RPAREN		()
     | lvalue ASSIGN exp %prec BASE										()
-    | IF exp THEN exp opt_else	%prec BASE					()
+    | IF exp THEN exp %prec BASE ()
+    | IF exp THEN exp ELSE exp %prec BASE ()
     | WHILE exp DO exp %prec BASE								()
     | FOR ID ASSIGN exp TO exp DO exp %prec BASE			()
     | BREAK																()
@@ -125,9 +126,6 @@ args: 	exp args_end 		()
     
 args_end: 	COMMA exp args_end ()
     			| 									 ()
-    
-opt_else: 	ELSE exp %prec BASE						()
-					| 										()
           
 
     
