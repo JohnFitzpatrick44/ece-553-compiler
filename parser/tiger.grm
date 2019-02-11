@@ -92,7 +92,6 @@ exp:  INT					  											()
     | lvalue ASSIGN exp %prec BASE										()
     | IF exp THEN exp %prec BASE ()
     | IF exp THEN exp ELSE exp %prec BASE ()
-			     
     | WHILE exp DO exp %prec BASE								()
     | FOR ID ASSIGN exp TO exp DO exp %prec BASE			()
     | BREAK																()
