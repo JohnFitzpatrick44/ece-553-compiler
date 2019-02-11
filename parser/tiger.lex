@@ -1,11 +1,9 @@
 type pos = int
-type svalue = Tokens.svalue
-type ('a, 'b) token = ('a, 'b) Tokens.token
-type lexresult = (svalue, pos) token
+type lexresult = Tokens.token
 
 val lineNum = ErrorMsg.lineNum
 val linePos = ErrorMsg.linePos
-fun newLine pos = (lineNum := !lineNum + 1; linePos := pos :: !linePos)
+fun newLine npos = (lineNum := !lineNum + 1; linePos := npos :: !linePos)
 
 val partialString = ref ""
 val stringStartPos = ref ~1
@@ -15,19 +13,19 @@ val commentPos: int list ref = ref nil
 fun getControlChar c = String.str(chr(ord(String.sub(c,2)) - 64))
 
 fun eof() = let
-    val pos = hd(!linePos);
+    val epos = hd(!linePos);
 in
     (if (!stringStartPos) >= 0
-     then ErrorMsg.error pos
+     then ErrorMsg.error epos
 			 ("Unterminated string starting at " ^
 			 (ErrorMsg.look(!stringStartPos)))
      else ());
     (if not (null (!commentPos))
-     then ErrorMsg.error pos
+     then ErrorMsg.error epos
 			 ("Unterminated comment starting at " ^
 			  ErrorMsg.look(hd (!commentPos)))
      else ());
-    Tokens.EOF(pos,pos)
+    Tokens.EOF(epos,epos)
 	      
 end
 		
@@ -113,11 +111,11 @@ eol = ("\013\010"|"\010"|"\013");
 
 <STRING_STATE>\"	=> (	YYBEGIN INITIAL; 
 							let val result = (!partialString) 
-								val pos = (!stringStartPos)
+								val spos = (!stringStartPos)
 							in 
 								partialString := ""; 
 								stringStartPos := ~1; 
-								Tokens.STRING(result, pos, yypos+1)
+								Tokens.STRING(result, spos, yypos+1)
 							end
 						); 
 
