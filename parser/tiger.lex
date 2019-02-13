@@ -1,5 +1,8 @@
 type pos = int
-type lexresult = Tokens.token
+
+type svalue = Tokens.svalue
+type ('a,'b) token = ('a,'b) Tokens.token
+type lexresult  = (svalue,pos) token
 
 val lineNum = ErrorMsg.lineNum
 val linePos = ErrorMsg.linePos
@@ -30,6 +33,7 @@ in
 end
         
 %%
+%header (functor TigerLexFun(structure Tokens: Tiger_TOKENS));
 %s COMMENT_STATE STRING_STATE FORMAT_STATE;
 escapeDigits = ([0-1][0-9][0-9])|(2[0-4][0-9])|(25[0-5]);
 eol = ("\013\010"|"\010"|"\013");

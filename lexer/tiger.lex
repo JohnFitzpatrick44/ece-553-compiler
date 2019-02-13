@@ -125,3 +125,4 @@ eol = ("\013\010"|"\010"|"\013");
 <STRING_STATE>.				=> (partialString := (!partialString) ^ yytext; continue());
 
 .                           => (ErrorMsg.error yypos ("Failed parsing text \"" ^ yytext ^ "\""); continue());
+
