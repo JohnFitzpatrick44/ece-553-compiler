@@ -1,6 +1,7 @@
 Group is 
 
 absyn.sml
+prabsyn.sml
 errormsg.sml
 table.sig
 table.sml
@@ -10,4 +11,4 @@ tiger.lex
 tiger.grm
 $/smlnj-lib.cm
 $/ml-yacc-lib.cm
-
+$/basis.cm
