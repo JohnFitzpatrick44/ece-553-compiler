@@ -9,6 +9,7 @@ sig
     exception Error
     val impossible : string -> 'a   (* raises Error *)
     val reset : unit -> unit
+    val look : int -> string
 end
 
 structure ErrorMsg : ERRORMSG =
@@ -28,21 +29,26 @@ struct
 
   exception Error
 
-  fun error pos (msg:string) =
-      let fun look(a::rest,n) =
-		if a<pos then app print [":",
-				       Int.toString n,
-				       ".",
-				       Int.toString (pos-a)]
-		       else look(rest,n-1)
-	    | look _ = print "0.0"
-       in anyErrors := true;
-	  print (!fileName);
-	  look(!linePos,!lineNum);
-	  print ":";
-	  print msg;
-	  print "\n"
+  fun look pos =
+      let fun lookAux (a::rest, n) =
+	      if a<pos then
+		  foldl (fn (s, text) => text ^ s) ""
+			[":", Int.toString n, ".", Int.toString (pos-a)]
+	      else lookAux (rest,n-1)
+	    | lookAux _ = "0.0"
+      in
+	  lookAux(!linePos, !lineNum)
       end
+
+  fun error pos (msg:string) = (
+      anyErrors := true;
+      print (!fileName);
+      print (look pos);
+      print ":";
+      print msg;
+      print "\n"
+  );
+      
 
   fun impossible msg =
       (app print ["Error: Compiler bug: ",msg,"\n"];
