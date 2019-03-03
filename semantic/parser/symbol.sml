@@ -3,6 +3,7 @@ sig
   eqtype symbol
   val symbol : string -> symbol
   val name : symbol -> string
+  val id: symbol -> int
   type 'a table
   val empty : 'a table
   val enter : 'a table * symbol * 'a -> 'a table
@@ -32,6 +33,7 @@ struct
 		  end
 
   fun name(s,n) = s
+  fun id(s,n) = n
 
   structure Table = IntMapTable(type key = symbol
 				fun getInt(s,n) = n)
