@@ -32,9 +32,5 @@ struct
     LOGGED((a, b), filteredConcat(log1, log2))
 
   fun report(LOGGED(_, logs): 'a log): unit =
-    let 
-      val () = print (Int.toString (List.length logs))
-    in
-      foldr (fn ((pos, msg), acc) => ErrorMsg.error pos msg) () logs
-    end
+    foldr (fn ((pos, msg), acc) => ErrorMsg.error pos msg) () logs
 end

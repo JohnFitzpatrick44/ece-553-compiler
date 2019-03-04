@@ -1,12 +1,5 @@
 let 
-  type t = int
-  type z = t 
-  type u = string
-
-  var x: u := "ha"
-
-  function f(a: u, b: z): z = g(1, 0)
-  function g(c: t, d: z): string = f(1, 2)
+  function k(a: string, b: int) = ()
 in
-  1+z
+  k(3, "one")
 end

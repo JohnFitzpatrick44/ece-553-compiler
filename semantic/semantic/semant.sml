@@ -71,8 +71,8 @@ struct
     Log.flatMap(typeToString(pos)(ty2), fn tStr2 =>
         if teq(at1, at2)
         then Log.success()
-        else Log.failure((), pos,  ("Types must match;" ^
-                                    " | LHS: " ^ tStr1 ^ 
+        else Log.failure((), pos,  ("Types must match;\n" ^
+                                    " | LHS: " ^ tStr1 ^ "\n" ^
                                     " | RHS: " ^ tStr2))))))
 
   fun checkMatchIntStr(ty1, ty2, pos): unit Log.log = 
@@ -83,8 +83,8 @@ struct
         if (teq(at1, Types.INT) andalso teq(at2, Types.INT)) orelse 
            (teq(at1, Types.STRING) andalso teq(at2, Types.STRING))
         then Log.success()
-        else Log.failure((), pos, ("Types must match and be either int or string. " ^ 
-                                   " | LHS: " ^ tStr1 ^ 
+        else Log.failure((), pos, ("Types must match and be either int or string.\n" ^ 
+                                   " | LHS: " ^ tStr1 ^ "\n" ^
                                    " | RHS: " ^ tStr2))))))
 
   fun matchOrdered(nil, nil, pos, n, len) = Log.success()
@@ -244,7 +244,8 @@ struct
                let
                  val translated = Log.all (map trExp args)
                  val types = Log.map(translated, fn lst => map (fn ({exp, ty}) => ty) lst) 
-                 val res = Log.flatMap(types, fn lst => matchOrdered(formals, lst, pos, 0, length formals))
+                 val res = Log.flatMap(types, fn lst => 
+                  matchOrdered(List.rev formals, List.rev lst, pos, 0, length formals))
                in
                  Log.map(res, fn (_) => { exp = (), ty = result })
                end
