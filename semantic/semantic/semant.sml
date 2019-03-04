@@ -17,7 +17,7 @@ struct
       fun member(nil, elm) = false
         | member(x::rst, elm) = (S.id x) = (S.id elm) orelse member(rst, elm)
       fun join(lst) = 
-        "[" ^ (String.concatWith "," (map (fn s => S.name s) lst)) ^ "]"
+        String.concatWith "=" (map (fn s => S.name s) lst)
            
       fun helper(Types.NAME(s, tref), visited) = 
         if member(visited, s)
@@ -60,7 +60,7 @@ struct
   fun checkInt(ty, pos): unit Log.log = 
     Log.flatMap(actualType(ty, pos), fn at =>
     Log.flatMap(typeToString(pos)(ty), fn tStr =>
-      if at = Types.INT
+      if teq(at, Types.INT)
       then Log.success()
       else Log.failure((), pos, "Integer required, but was given " ^ tStr)))
 
@@ -72,8 +72,8 @@ struct
         if teq(at1, at2)
         then Log.success()
         else Log.failure((), pos,  ("Types must match;" ^
-                                    "| LHS: " ^ tStr1 ^ 
-                                    "| RHS: " ^ tStr2))))))
+                                    " | LHS: " ^ tStr1 ^ 
+                                    " | RHS: " ^ tStr2))))))
 
   fun checkMatchIntStr(ty1, ty2, pos): unit Log.log = 
     Log.flatMap(actualType(ty1, pos), fn at1 => 
@@ -84,20 +84,20 @@ struct
            (teq(at1, Types.STRING) andalso teq(at2, Types.STRING))
         then Log.success()
         else Log.failure((), pos, ("Types must match and be either int or string. " ^ 
-                                   "| LHS: " ^ tStr1 ^ 
-                                   "| RHS: " ^ tStr2))))))
+                                   " | LHS: " ^ tStr1 ^ 
+                                   " | RHS: " ^ tStr2))))))
 
   fun matchOrdered(nil, nil, pos, n, len) = Log.success()
     | matchOrdered(_, nil, pos, n, len) = 
         Log.failure((), pos, 
           ("Received less arguments than expected .\n" ^
-           "| Expected: " ^ (Int.toString len) ^ "\n" ^
-           "| Actual:   " ^ (Int.toString n)))
+           " | Expected: " ^ (Int.toString len) ^ "\n" ^
+           " | Actual:   " ^ (Int.toString n)))
     | matchOrdered(nil, rst, pos, n, len) = 
         Log.failure((), pos, 
           ("Received more arguments than expected .\n" ^
-           "| Expected: " ^ (Int.toString len) ^ "\n" ^
-           "| Actual:   " ^ (Int.toString (n + length rst))))
+           " | Expected: " ^ (Int.toString len) ^ "\n" ^
+           " | Actual:   " ^ (Int.toString (n + length rst))))
     | matchOrdered(t1::rst1, t2::rst2, pos, n, len) = 
         Log.flatMap(actualType(t1, pos), fn at1 => 
         Log.flatMap(actualType(t2, pos), fn at2 =>
@@ -107,8 +107,8 @@ struct
             if teq(at1, at2)
             then Log.success()
             else Log.failure((), pos, ("Type mismatch at argument index " ^ (Int.toString n) ^ ".\n" ^
-                                       "| Expected: " ^ tStr1 ^ "\n" ^
-                                       "| Actual:   " ^ tStr2)), 
+                                       " | Expected: " ^ tStr1 ^ "\n" ^
+                                       " | Actual:   " ^ tStr2)), 
             fn () => matchOrdered(rst1, rst2, pos, n+1, len))))))
 
   fun fieldName({name=name, escape=_, typ=_, pos=_}) = name
@@ -357,8 +357,7 @@ struct
               else Log.failure((), pos, ("The body's result type and declared result type " ^ 
                                          "does not match. \n" ^
                                          " | Declared: " ^ decResTyStr ^ "\n" ^
-                                         " | Actual:   " ^ resTyStr ^
-                                         "\n"))))))))))
+                                         " | Actual:   " ^ resTyStr))))))))))
 
           val logs = Log.all (map bodyCheck fundecs)
         in
