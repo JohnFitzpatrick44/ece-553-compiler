@@ -1,1 +1,11 @@
-(1 + ())
+let 
+  type x = int
+  type w = x
+  type z = string
+
+  var hoo: x := 2
+  var boo: w := 1
+  var zoo: z := hoo
+in
+  zoo > boo
+end

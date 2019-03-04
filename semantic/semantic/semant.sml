@@ -17,55 +17,99 @@ struct
     | typeToString(Types.INT) = "Int"
     | typeToString(Types.STRING) = "String"
     | typeToString(Types.ARRAY(t, _)) = "Array of " ^ (typeToString t)
-    | typeToString(Types.UNIT) = "unit"
-    | typeToString(Types.NAME(_, _)) = "name"
+    | typeToString(Types.UNIT) = "Unit"
+    | typeToString(Types.NAME(name, _)) = "Name(" ^ (S.name name) ^ ")"
     | typeToString(Types.BOT) = "⊥"
 
   fun checkInt({exp, ty}, pos) = 
     if teq (ty, Types.INT)
     then ()
-    else ErrorMsg.error pos "Integer required"
+    else ErrorMsg.error pos 
+          ("Integer required, but was given " ^ (typeToString ty))
 
   fun checkMatch({exp=exp1, ty=ty1}, {exp=exp2, ty=ty2}, pos) = 
     if teq(ty1, ty2)
     then ()
-    else ErrorMsg.error pos "Types must match."
+    else ErrorMsg.error pos 
+          ("Types must match; LHS: " ^ (typeToString ty1) ^ 
+           ", RHS: " ^ (typeToString ty2))
 
   fun checkMatchIntStr({exp=exp1, ty=ty1}, {exp=exp2, ty=ty2}, pos) = 
     if (teq(ty1, Types.INT) andalso teq(ty2, Types.INT)) orelse 
        (teq(ty1, Types.STRING) andalso teq(ty2, Types.STRING))
     then ()
-    else ErrorMsg.error pos "Types must match and be either int or string."
+    else ErrorMsg.error pos 
+          ("Types must match and be either int or string. " ^ 
+           "LHS: " ^ (typeToString ty1) ^ ", RHS: " ^ (typeToString ty2))
 
   fun matchOrdered(nil, nil, pos, n, len) = ()
     | matchOrdered(_, nil, pos, n, len) = 
         ErrorMsg.error pos 
           ("Received less arguments than expected .\n" ^
-           "Expected: " ^ (Int.toString len) ^ "\n" ^
-           "Actual:   " ^ (Int.toString n))
+           "| Expected: " ^ (Int.toString len) ^ "\n" ^
+           "| Actual:   " ^ (Int.toString n))
     | matchOrdered(nil, rst, pos, n, len) = 
         ErrorMsg.error pos 
           ("Received more arguments than expected .\n" ^
-           "Expected: " ^ (Int.toString len) ^ "\n" ^
-           "Actual:   " ^ (Int.toString (n + length rst)))
+           "| Expected: " ^ (Int.toString len) ^ "\n" ^
+           "| Actual:   " ^ (Int.toString (n + length rst)))
     | matchOrdered(t1::rst1, t2::rst2, pos, n, len) = 
       (
         if teq(t1, t2)
         then ()
         else ErrorMsg.error pos 
               ("Type mismatch at argument index " ^ (Int.toString n) ^ ".\n" ^
-               "Expected: " ^ (typeToString t1) ^ "\n" ^
-               "Actual:   " ^ (typeToString t2));
+               "| Expected: " ^ (typeToString t1) ^ "\n" ^
+               "| Actual:   " ^ (typeToString t2));
 
         matchOrdered(rst1, rst2, pos, n+1, len)
       )
 
-  fun transVar(venv: venv, tenv: tenv, variable: A.var): expty = 
+  fun actualType(t, pos) =
+    let 
+      fun member(nil, elm) = false
+        | member(x::rst, elm) = (S.id x) = (S.id elm) orelse member(rst, elm)
+      fun join(lst) = 
+        "[" ^ (String.concatWith "," (map (fn s => S.name s) lst)) ^ "]"
+           
+      fun helper(Types.NAME(s, tref), visited) = 
+        if member(visited, s)
+        then (ErrorMsg.error pos 
+                ("Could not resolve types " ^ (join visited) ^ 
+                 " due to cyclic definition."); 
+              Types.BOT)
+        else
+          (case !tref of
+            SOME(typ) => helper(typ, s :: visited)
+          | NONE => 
+              (ErrorMsg.error pos ("Could not resolve type " ^ (S.name s));
+              Types.BOT))
+        | helper(t, visited) = t
+    in
+      helper(t, [])
+    end
+
+  fun transTy(tenv: tenv, typ: A.ty): Types.ty = 
+    let
+      fun nameTy(sym, pos) = 
+        case S.look(tenv, sym) of
+          SOME(t) => t
+        | NONE => 
+            (ErrorMsg.error pos ("Could not resolve type " ^ (S.name sym));
+            Types.BOT)
+    in
+      case typ of
+           A.NameTy(sym, pos) => nameTy(sym, pos)
+         | A.RecordTy(fields) => Types.UNIT
+         | A.ArrayTy(sym, pos) => Types.UNIT
+    end
+
+  and transVar(venv: venv, tenv: tenv, variable: A.var): expty = 
     let 
       fun simpleVar(sym, pos) = 
         case S.look(venv, sym) of
-             SOME(Env.VarEntry{ty}) => { exp = (), ty = ty }
-           | _ => (ErrorMsg.error pos ("Undefined variable " ^ (S.name sym)); 
+             SOME(Env.VarEntry{ty}) => { exp = (), ty = actualType(ty, pos) }
+           | _ => (ErrorMsg.error pos ("Could not resolve variable " ^ (S.name sym)); 
                   { exp = (), ty = Types.BOT })
 
       fun fieldVar(var, sym, pos) = 
@@ -75,7 +119,7 @@ struct
               { exp = (), ty = Types.BOT })
             | findSym((sym, t)::rst, s, pos) = 
                 if (S.id sym) = (S.id s)
-                then { exp = (), ty = t }
+                then { exp = (), ty = actualType(t, pos) }
                 else findSym(rst, s, pos)
           val {exp=_, ty=t} = transVar(venv, tenv, var)
         in
@@ -107,7 +151,7 @@ struct
        | A.WhileExp{test, body, pos} => PLACEHOLDER
        | A.ForExp{var, escape, lo, hi, body, pos} => PLACEHOLDER
        | A.BreakExp(pos) => PLACEHOLDER
-       | A.LetExp{decs, body, pos} => PLACEHOLDER
+       | A.LetExp{decs, body, pos} => letExp(decs, body, pos)
        | A.ArrayExp{typ, size, init, pos} => PLACEHOLDER
 
       and seqExp(nil) = { exp = (), ty = Types.UNIT }
@@ -137,27 +181,77 @@ struct
            | _ => 
                (ErrorMsg.error pos ("Undefined function " ^ (S.name func)); 
                { exp = (), ty = Types.BOT })
+      and letExp(decs, body, pos) = 
+        let val {venv=venv', tenv=tenv'} = transDecs(venv, tenv, decs)
+        in transExp(venv', tenv', body)
+        end
 
-               
     in
       trExp expression
     end
 
+  and transDecs(venv: venv, tenv: tenv, decs: A.dec list): { venv: venv, tenv: tenv} = 
+      foldl (fn (dec, { venv = venv', tenv = tenv' } ) => 
+              transDec(venv', tenv', dec)) {venv=venv, tenv=tenv} decs
+
   and transDec(venv: venv, tenv: tenv, declaration: A.dec): { venv: venv, tenv: tenv } = 
     let
-            
+      fun varDec(name, escape, typ, init, pos) = 
+        let 
+          val {exp=_, ty=iT} = transExp(venv, tenv, init);
+          val initT = actualType(iT, pos)
+        in
+          case typ of 
+            SOME((s, _)) => (
+              case S.look(tenv,s) of
+                SOME(t') => 
+                  let val t = actualType(t', pos)
+                  in
+                    if teq(initT, t)
+                    then {venv=S.enter(venv, name, Env.VarEntry{ty=t}), tenv=tenv}
+                    else (
+                      ErrorMsg.error pos 
+                        ("The initializer's type does not " ^ 
+                        "match the declared type.\n" ^
+                        "| Initializer: " ^ (typeToString initT) ^ "\n" ^
+                        "| Declared:    " ^ (typeToString t));
+                        { venv=S.enter(venv, name, Env.VarEntry{ty=t}), 
+                          tenv=tenv }
+                    )
+                  end
+              | NONE => 
+                    (ErrorMsg.error pos ("Undeclared type " ^ (S.name s));
+                     { venv=S.enter(venv, name, Env.VarEntry{ty=Types.BOT}), 
+                       tenv=S.enter(tenv, s, Types.BOT) })
+            )
+          | NONE => { venv=S.enter(venv, name, Env.VarEntry{ty=initT}), tenv=tenv }
+        end
+      fun typeDecs(typedecs) = 
+        let 
+          val headerEnv = foldl
+            (fn ({name, ty, pos}, acc) => S.enter(acc, name, Types.NAME(name, ref NONE)))
+            tenv 
+            typedecs
+
+          fun trAndAssign(name, ty, pos) = 
+            let val translated = transTy(headerEnv, ty)
+            in
+              case S.look(headerEnv, name) of
+                SOME(Types.NAME(_, r)) => r := SOME(translated)
+              | _ => ()
+            end
+
+          val () = 
+            app (fn ({name, ty, pos}) => trAndAssign(name, ty, pos)) typedecs
+        in
+          { venv = venv, tenv = headerEnv }
+        end 
     in
       case declaration of
            A.FunctionDec(fundecs) => { venv = venv, tenv = tenv }
-         | A.VarDec{name, escape, typ, init, pos} => { venv = venv, tenv = tenv }
-         | A.TypeDec(typedecs) => { venv = venv, tenv = tenv }
+         | A.VarDec{name, escape, typ, init, pos} => varDec(name, escape, typ, init, pos)
+         | A.TypeDec(typedecs) => typeDecs typedecs
     end
-
-  and transTy(tenv: tenv, typ: A.ty): Types.ty = 
-    case typ of
-         A.NameTy(sym, pos) => Types.UNIT
-       | A.RecordTy(fields) => Types.UNIT
-       | A.ArrayTy(sym, pos) => Types.UNIT
 
   fun transProg (absyn: A.exp): unit = 
     ( transExp(Env.base_venv, Env.base_tenv, absyn); ())
