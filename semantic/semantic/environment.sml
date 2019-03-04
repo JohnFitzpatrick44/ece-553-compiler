@@ -12,7 +12,6 @@ struct
       foldl (fn ((sym, typ), acc) => Symbol.enter(acc, sym, typ)) Symbol.empty base_types
     end
 
-               
   val base_venv: enventry Symbol.table = 
     let 
       val base_vars = [

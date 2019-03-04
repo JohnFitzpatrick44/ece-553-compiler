@@ -1,11 +1,10 @@
 let 
-  type x = int
-  type w = x
-  type z = string
+  type t = int
+  type z = t
+  type u = z
 
-  var hoo: x := 2
-  var boo: w := 1
-  var zoo: z := hoo
+  function f(a: u, b: z): z = g(1, 0)
+  function g(c: t, d: z): string = f(1, 2)
 in
-  zoo > boo
+  f(1, "ha")
 end
