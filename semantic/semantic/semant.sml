@@ -33,7 +33,6 @@ struct
       helper(t, [])
     end
 
-
   fun typeToString(pos: int)(ty: Types.ty): string Log.log =
     case ty of
       Types.NIL => Log.success("Nil")
@@ -43,10 +42,7 @@ struct
     | Types.BOT => Log.success("⊥")
     | Types.ARRAY(t, _) => 
         Log.flatMap(typeToString(pos)(t), fn x => Log.success("Array of " ^ x))
-    |  Types.RECORD(lst, _) => 
-        let val fields = Log.all (map (fn (s, t) => typeToString(pos)(t)) lst)
-        in Log.map(fields, fn strs => "RECORD(" ^ (String.concatWith ", " strs) ^ ")")
-        end
+    | Types.RECORD(lst, id) => recordString(lst, pos)
     | Types.NAME(_, _) =>
         let 
           val tts = typeToString(pos)
@@ -56,6 +52,16 @@ struct
         in
           Log.map(actualStr, fn str => (S.name sym) ^ " = " ^ str)
         end
+
+  and recordString(lst, pos): string Log.log = 
+    let 
+      fun parseField(sym, typ) = 
+        case typ of
+          Types.NAME(name, _) => Log.success(S.name name) (* don't dive in deeper *)
+        | _ => typeToString(pos)(typ)
+      val fields = Log.all (map parseField lst)
+    in Log.map(fields, fn fields => "RECORD{" ^ (String.concatWith ", " fields) ^ "}")
+    end
 
   fun checkInt(ty, pos): unit Log.log = 
     Log.flatMap(actualType(ty, pos), fn at =>
@@ -119,11 +125,26 @@ struct
         case S.look(tenv, sym) of
           SOME(t) => Log.success(t)
         | NONE => Log.failure(Types.BOT, pos, "Could not resolve type " ^ (S.name sym))
+      fun recordTy(fields) =
+        let
+          fun trField({name, escape, typ, pos}) = 
+            case S.look(tenv, typ) of
+              SOME(t) => Log.success((name, t))
+            | NONE => Log.failure((name, Types.BOT), pos, "Could not resolve type " ^ (S.name typ))
+          val recfields = Log.all (map trField fields)
+        in
+          Log.map(recfields, fn recfields => Types.RECORD(recfields, ref ()))
+        end
+      fun arrayTy(sym, pos) =
+        case S.look(tenv, sym) of
+          SOME(t) => Log.success(Types.ARRAY(t, ref ()))
+        | NONE => Log.failure(Types.BOT, pos, "Could not resolve type " ^ (S.name sym))
+
     in
       case typ of
            A.NameTy(sym, pos) => nameTy(sym, pos)
-         | A.RecordTy(fields) => Log.success(Types.UNIT)
-         | A.ArrayTy(sym, pos) => Log.success(Types.UNIT)
+         | A.RecordTy(fields) => recordTy(fields)
+         | A.ArrayTy(sym, pos) => arrayTy(sym, pos)
     end
 
   and transVar(venv: venv, tenv: tenv, variable: A.var): expty Log.log = 
@@ -152,11 +173,21 @@ struct
         in
           Log.flatMap(transVar(venv, tenv, var), resolve)
         end
+
+      fun subscriptVar(var, exp, pos) = 
+        Log.flatMap(transVar(venv, tenv, var), fn ({exp=_, ty=ty}) => 
+        Log.flatMap(actualType(ty, pos), fn at =>
+        Log.flatMap(transExp(venv, tenv, exp), fn ({exp=_, ty=expTy}) =>
+        Log.flatMap(checkInt(expTy, pos), fn () =>
+          case at of
+            Types.ARRAY(typ, _) => Log.success({ exp = (), ty = typ })
+          | _ => Log.failure({ exp = (), ty = Types.BOT }, pos, "The variable is not an ARRAY")))))
+               
     in
       case variable of
            A.SimpleVar(sym, pos) => simpleVar(sym, pos)
          | A.FieldVar(var, sym, pos) => fieldVar(var, sym, pos)
-         | A.SubscriptVar(var, sym, pos) => Log.success(PLACEHOLDER)
+         | A.SubscriptVar(var, exp, pos) => subscriptVar(var, exp, pos)
     end
 
   and transExp(venv: venv, tenv: tenv, expression: A.exp): expty Log.log = 
