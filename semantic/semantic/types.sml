@@ -9,8 +9,8 @@ struct
           | INT
           | STRING
           | ARRAY of ty * unique
-	  | NAME of Symbol.symbol * ty option ref
-	  | UNIT
+	        | NAME of Symbol.symbol * ty option ref
+	        | UNIT
           | BOT
 
   fun eq(RECORD(_, r1), RECORD(_, r2)) = r1 = r2

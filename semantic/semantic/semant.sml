@@ -1,4 +1,4 @@
-structure Semant = 
+structure Semant :> Semantic = 
 struct
   structure A = Absyn;
   structure S = Symbol;
@@ -12,7 +12,7 @@ struct
 
   val PLACEHOLDER: expty = { exp = (), ty = Types.UNIT }
 
-  fun actualType(t: Types.ty, pos: int): Types.ty Log.log =
+  fun actualType(t: Types.ty, pos: int): Types.ty Log.log = 
     let 
       fun member(nil, elm) = false
         | member(x::rst, elm) = (S.id x) = (S.id elm) orelse member(rst, elm)
@@ -28,11 +28,18 @@ struct
           (case !tref of
             SOME(typ) => helper(typ, s :: visited)
           | NONE => Log.failure(Types.BOT, pos, ("Could not resolve type " ^ (S.name s))))
-        | helper(t, _) = Log.success(t)
+          | helper(t, _) = Log.success(t)
     in
       helper(t, [])
     end
 
+  fun checkType(ty1, ty2, pos): bool = 
+    let 
+      val at1 = Log.valueOf (actualType(ty1, pos))
+      val at2 = Log.valueOf (actualType(ty2, pos))
+    in 
+      teq(at1, at2)
+    end
 
   fun typeToString(pos: int)(ty: Types.ty): string Log.log =
     case ty of
@@ -169,15 +176,136 @@ struct
        | A.StringExp(str, pos) => Log.success({ exp=(), ty=Types.STRING })
        | A.CallExp{func, args, pos} => callExp(func, args, pos)
        | A.OpExp{left, oper, right, pos} => opExp(left, oper, right, pos)
-       | A.RecordExp{fields, typ, pos} => Log.success(PLACEHOLDER)
+       | A.RecordExp{fields, typ, pos} => ( 
+          case S.look(tenv,typ) of
+            NONE => Log.failure({ exp = (), ty = Types.BOT }, pos, "Undefined record type " ^ (S.name typ))
+          | SOME t =>
+              case (Log.valueOf (actualType(t,pos))) of
+                Types.RECORD(fieldTypes,unique) =>
+                  let
+                    val transFields = map (fn (sym,exp,pos) => (sym,Log.valueOf (transExp (venv,tenv,exp)),pos)) fields
+                  in
+                    if (length(fieldTypes) <> length(transFields)) then 
+                      Log.failure({ exp = (), ty = Types.BOT}, pos, 
+                        "Record expected " ^ (Int.toString (length(fieldTypes))) ^ " fields, but " ^ (Int.toString (length(transFields))) ^ " fields given")
+                    else
+                      (* This can be reworked... *)
+                      let
+                        val mergedList = map (fn (sym, {exp, ty}, pos) => 
+                            let 
+                              val fieldItem = List.find (fn (fsym, fty) => (Symbol.id fsym) = (Symbol.id sym) andalso checkType(fty, ty,pos)) fieldTypes
+                            in 
+                              case fieldItem of 
+                                NONE => NONE
+                              | SOME (fsym, fty) => SOME (sym, exp, ty, pos)
+                            end
+                          ) transFields
+                      in
+                        if isSome (List.find (fn item => not (isSome item)) mergedList) then
+                          Log.failure({exp=(), ty=Types.BOT}, pos, "Record declarations invalid")
+                        else 
+                          Log.success({exp=(), ty=Types.RECORD(fieldTypes,unique)})
+                      end
+                  end
+              | t => Log.failure({exp = (), ty = Types.BOT}, pos, "Record type mismatch")
+          )
+        
+
        | A.SeqExp(exps) => seqExp(exps)
-       | A.AssignExp{var, exp, pos} => Log.success(PLACEHOLDER)
-       | A.IfExp{test, then', else', pos} => Log.success(PLACEHOLDER)
-       | A.WhileExp{test, body, pos} => Log.success(PLACEHOLDER)
-       | A.ForExp{var, escape, lo, hi, body, pos} => Log.success(PLACEHOLDER)
-       | A.BreakExp(pos) => Log.success(PLACEHOLDER)
+       | A.AssignExp{var, exp, pos} => 
+          let 
+            val {exp=varexp,ty=varty} = Log.valueOf(transVar (venv,tenv,var))
+            val {exp=expexp,ty=expty} = Log.valueOf(transExp (venv,tenv,exp))
+          in
+            if(checkType (varty, expty, pos)) then
+              Log.success({exp=(),ty=Types.UNIT})
+            else 
+              Log.failure({exp=(), ty = Types.BOT}, pos, "Type mismatch in assign expression")
+          end
+
+       | A.IfExp{test, then', else', pos} => 
+          let 
+            val {exp=thenexp,ty=thenty} = Log.valueOf(transExp (venv,tenv,then'))
+            val {exp=testexp,ty=testty} = Log.valueOf(transExp (venv,tenv,test))
+          in
+            if(checkType(Types.INT,testty,pos)) then
+              let val elseexp =
+                case else' of
+                  NONE => NONE 
+                | SOME(e) =>
+                    let 
+                      val {exp=elseexp,ty=elsety} = Log.valueOf(transExp (venv,tenv,e))
+                    in
+                      SOME(elseexp, elsety)
+                    end
+              in 
+                case elseexp of
+                  NONE => if checkType(Types.UNIT, thenty, pos) then 
+                            Log.success({exp=(),ty=Types.UNIT})
+                          else
+                            Log.failure({exp=(),ty=Types.BOT}, pos, "If-then statements must return no value")
+                | SOME(e, t) => if checkType(thenty, t, pos) then 
+                                  Log.success({exp={},ty=thenty})
+                                else 
+                                  Log.failure({exp=(),ty=Types.BOT}, pos, "Then and else expressions must return same type")
+              end
+            else Log.failure({exp=(), ty = Types.BOT}, pos, "Test condition must be an int")
+          end
+
+
+
+       | A.WhileExp{test, body, pos} => 
+          let
+            val {exp=testexp,ty=testty} = Log.valueOf(transExp (venv,tenv,test))
+            val {exp=bodyexp,ty=bodyty} = Log.valueOf(transExp (venv,tenv,body))
+          in
+            if checkType(Types.INT,testty,pos) then 
+              if checkType(Types.UNIT,bodyty,pos) then Log.success({exp=(), ty=Types.UNIT})
+              else Log.failure({exp=(),ty=Types.BOT},pos,"Test expression must evaluate to unit")
+            else Log.failure({exp=(),ty=Types.BOT},pos,"Test expression must be an int")
+          end
+       | A.ForExp{var, escape, lo, hi, body, pos} => 
+          let 
+            val venvNew = S.enter (venv, var, Env.VarEntry {ty=Types.INT})
+            val {exp=loexp,ty=loty} = Log.valueOf (transExp(venvNew, tenv, lo))
+            val {exp=hiexp,ty=hity} = Log.valueOf (transExp(venvNew, tenv, hi))
+            val {exp=bodyexp,ty=bodyty} = Log.valueOf (transExp(venvNew, tenv, body))
+          in
+            (*Change to return multiple errors*)
+            case (checkType(Types.INT, loty,pos), checkType(Types.INT,hity,pos), checkType(Types.UNIT,bodyty,pos)) of
+              (true,true,true) => Log.success({exp=(),ty=Types.UNIT})
+            | (false,_,_) => Log.failure({exp=(),ty=Types.BOT},pos,"Low bound must be an int")
+            | (_,false,_) => Log.failure({exp=(),ty=Types.BOT},pos,"High bound must be an int")
+            | (_,_,false) => Log.failure({exp=(),ty=Types.BOT},pos,"Body must evaluate to unit")
+          end
+       | A.BreakExp(pos) => Log.success({exp=(), ty=Types.UNIT})
        | A.LetExp{decs, body, pos} => letExp(decs, body, pos)
-       | A.ArrayExp{typ, size, init, pos} => Log.success(PLACEHOLDER)
+       | A.ArrayExp{typ, size, init, pos} => (
+          case S.look(tenv,typ) of
+            NONE =>
+              Log.failure({exp=(), ty=Types.BOT}, pos, "Array type " ^ (S.name typ) ^ " not found")
+          | SOME(t) =>
+            let 
+              val at = Log.valueOf (actualType(t,pos)) 
+            in
+              case at of
+                Types.ARRAY(arrayType,unique) =>
+                  let 
+                    val {exp=sizeexp,ty=sizety} = Log.valueOf (transExp (venv,tenv,size))
+                    val {exp=initexp,ty=initty} = Log.valueOf (transExp (venv,tenv,init))
+                  in
+                    if checkType(Types.INT, sizety, pos) then (
+                      if checkType(arrayType, initty, pos) then 
+                        Log.success({exp=(), ty=Types.ARRAY(arrayType, unique)})
+                      else 
+                        Log.failure({exp=(), ty=Types.BOT}, pos, "Initial type does not match array type")
+                    )
+                    else 
+                      Log.failure({exp=(), ty=Types.BOT}, pos, "Size must be an int")
+                  end
+                | t => Log.failure({exp=(), ty=Types.BOT}, pos, "Type mismatch")
+            end
+          )
 
       and seqExp(nil) = Log.success({ exp = (), ty = Types.UNIT })
         | seqExp((exp, pos) :: nil) = trExp(exp) 
