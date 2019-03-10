@@ -94,6 +94,15 @@ struct
                                    " | LHS: " ^ tStr1 ^ "\n" ^
                                    " | RHS: " ^ tStr2))))))
 
+  fun checkForDuplicates (nil,nil) = Log.success()
+    | checkForDuplicates ([],l) = Log.success()
+    | checkForDuplicates (l,[]) = Log.success()
+    | checkForDuplicates (name::nlist, pos::plist) =
+      if (List.all (fn (x) => (name <> x)) nlist) 
+      then checkForDuplicates(nlist,plist)
+      else Log.failure((), pos, "Duplicate definition found: " ^ S.name name)
+
+
   fun matchOrdered(nil, nil, pos, n, len) = Log.success()
     | matchOrdered(_, nil, pos, n, len) = 
         Log.failure((), pos, 
@@ -193,7 +202,7 @@ struct
                       let
                         val mergedList = map (fn (sym, {exp, ty}, pos) => 
                             let 
-                              val fieldItem = List.find (fn (fsym, fty) => (Symbol.id fsym) = (Symbol.id sym) andalso checkType(fty, ty,pos)) fieldTypes
+                              val fieldItem = List.find (fn (fsym, fty) => (Symbol.id fsym) = (Symbol.id sym) (* andalso checkType(fty, ty,pos) *) ) fieldTypes
                             in 
                               case fieldItem of 
                                 NONE => NONE
@@ -207,7 +216,7 @@ struct
                           Log.success({exp=(), ty=Types.RECORD(fieldTypes,unique)})
                       end
                   end
-              | t => Log.failure({exp = (), ty = Types.BOT}, pos, "Record type mismatch")
+              | t => Log.failure({exp = (), ty = Types.BOT}, pos, "Record type mismatch, given " ^ (Log.valueOf (typeToString pos t)))
           )
         
 
@@ -217,39 +226,34 @@ struct
             val {exp=varexp,ty=varty} = Log.valueOf(transVar (venv,tenv,var))
             val {exp=expexp,ty=expty} = Log.valueOf(transExp (venv,tenv,exp))
           in
-            if(checkType (varty, expty, pos)) then
-              Log.success({exp=(),ty=Types.UNIT})
-            else 
-              Log.failure({exp=(), ty = Types.BOT}, pos, "Type mismatch in assign expression")
+            checkMatch (varty, expty, pos);
+            Log.success({exp=(),ty=Types.UNIT})
           end
 
        | A.IfExp{test, then', else', pos} => 
           let 
             val {exp=thenexp,ty=thenty} = Log.valueOf(transExp (venv,tenv,then'))
             val {exp=testexp,ty=testty} = Log.valueOf(transExp (venv,tenv,test))
+            val elseexp =
+              case else' of
+                NONE => NONE 
+              | SOME(e) =>
+                  let 
+                    val {exp=elseexp,ty=elsety} = Log.valueOf(transExp (venv,tenv,e))
+                  in
+                    SOME(elseexp, elsety)
+                  end
           in
-            if(checkType(Types.INT,testty,pos)) then
-              let val elseexp =
-                case else' of
-                  NONE => NONE 
-                | SOME(e) =>
-                    let 
-                      val {exp=elseexp,ty=elsety} = Log.valueOf(transExp (venv,tenv,e))
-                    in
-                      SOME(elseexp, elsety)
-                    end
-              in 
-                case elseexp of
-                  NONE => if checkType(Types.UNIT, thenty, pos) then 
-                            Log.success({exp=(),ty=Types.UNIT})
-                          else
-                            Log.failure({exp=(),ty=Types.BOT}, pos, "If-then statements must return no value")
-                | SOME(e, t) => if checkType(thenty, t, pos) then 
-                                  Log.success({exp={},ty=thenty})
-                                else 
-                                  Log.failure({exp=(),ty=Types.BOT}, pos, "Then and else expressions must return same type")
-              end
-            else Log.failure({exp=(), ty = Types.BOT}, pos, "Test condition must be an int")
+            checkInt(testty, pos); 
+            case elseexp of
+              NONE => if checkType(Types.UNIT, thenty, pos) then 
+                        Log.success({exp=(),ty=Types.UNIT})
+                      else
+                        Log.failure({exp=(),ty=Types.BOT}, pos, "If-then statements must return unit")
+            | SOME(e, t) => if checkType(thenty, t, pos) then 
+                              Log.success({exp=(),ty=thenty})
+                            else 
+                              Log.failure({exp=(),ty=Types.BOT}, pos, "Then and else expressions must return same type")
           end
 
 
@@ -261,7 +265,7 @@ struct
           in
             if checkType(Types.INT,testty,pos) then 
               if checkType(Types.UNIT,bodyty,pos) then Log.success({exp=(), ty=Types.UNIT})
-              else Log.failure({exp=(),ty=Types.BOT},pos,"Test expression must evaluate to unit")
+              else Log.failure({exp=(),ty=Types.BOT},pos,"Body expression must evaluate to unit")
             else Log.failure({exp=(),ty=Types.BOT},pos,"Test expression must be an int")
           end
        | A.ForExp{var, escape, lo, hi, body, pos} => 
@@ -303,7 +307,7 @@ struct
                     else 
                       Log.failure({exp=(), ty=Types.BOT}, pos, "Size must be an int")
                   end
-                | t => Log.failure({exp=(), ty=Types.BOT}, pos, "Type mismatch")
+                | t => Log.failure({exp=(), ty=Types.BOT}, pos, "Array type mismatch, given " ^ (Log.valueOf (typeToString pos t)))
             end
           )
 
