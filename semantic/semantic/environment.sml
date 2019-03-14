@@ -1,4 +1,4 @@
-structure Env =
+structure Env :> Environment =
 struct
   type access = unit (* ??? *)
   datatype enventry = VarEntry of {ty: Types.ty}

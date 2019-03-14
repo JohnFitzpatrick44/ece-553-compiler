@@ -9,8 +9,10 @@ parser/symbol.sml
 parser/parse.sml
 parser/tiger.lex
 parser/tiger.grm
+semantic/environment.sig
 semantic/environment.sml
 semantic/types.sml
+semantic/semant.sig
 semantic/semant.sml
 semantic/main.sml
 semantic/translate.sml
