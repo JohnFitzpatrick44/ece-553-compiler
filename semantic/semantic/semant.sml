@@ -3,15 +3,18 @@ struct
   structure A = Absyn;
   structure S = Symbol;
 
+
   type venv = Env.enventry S.table
   type tenv = Types.ty S.table
-
   type expty = { exp: Translate.exp, ty: Types.ty }
 
+  (* Compares types *)
   val teq = Types.eq
 
+  (* Read: todo *)
   val PLACEHOLDER: expty = { exp = (), ty = Types.UNIT }
 
+  (* Gets the "actual type", regarding user defined types *)
   fun actualType(t: Types.ty, pos: int): Types.ty Log.log = 
     let 
       fun member(nil, elm) = false
@@ -33,6 +36,7 @@ struct
       helper(t, [])
     end
 
+  (* Compares types, returns a boolean *)
   fun checkType(ty1, ty2, pos): bool = 
     let 
       val at1 = Log.valueOf (actualType(ty1, pos))
@@ -41,6 +45,7 @@ struct
       teq(at1, at2)
     end
 
+  (* Returns a string log version of a type *)
   fun typeToString(pos: int)(ty: Types.ty): string Log.log =
     case ty of
       Types.NIL => Log.success("Nil")
@@ -64,6 +69,7 @@ struct
           Log.map(actualStr, fn str => (S.name sym) ^ " = " ^ str)
         end
 
+  (* Compares type to an int *)
   fun checkInt(ty, pos): unit Log.log = 
     Log.flatMap(actualType(ty, pos), fn at =>
     Log.flatMap(typeToString(pos)(ty), fn tStr =>
@@ -71,6 +77,7 @@ struct
       then Log.success()
       else Log.failure((), pos, "Integer required, but was given " ^ tStr)))
 
+  (* Like check type, but returns a log *)
   fun checkMatch(ty1, ty2, pos): unit Log.log = 
     Log.flatMap(actualType(ty1, pos), fn at1 => 
     Log.flatMap(actualType(ty2, pos), fn at2 =>
@@ -82,6 +89,7 @@ struct
                                     " | LHS: " ^ tStr1 ^ "\n" ^
                                     " | RHS: " ^ tStr2))))))
 
+  (* Matches either two ints or two strings *)
   fun checkMatchIntStr(ty1, ty2, pos): unit Log.log = 
     Log.flatMap(actualType(ty1, pos), fn at1 => 
     Log.flatMap(actualType(ty2, pos), fn at2 =>
@@ -94,6 +102,26 @@ struct
                                    " | LHS: " ^ tStr1 ^ "\n" ^
                                    " | RHS: " ^ tStr2))))))
 
+  fun checkMatchTwoInt(left, right, pos) = 
+    Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
+    Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
+    Log.flatMap(checkInt(leftTy, pos), fn () =>
+    Log.flatMap(checkInt(rightTy, pos), fn () =>
+      Log.success({exp=(), ty=Types.INT})))))
+
+  fun checkMatchTwoEq(left, right, pos) = 
+    Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
+    Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
+    Log.flatMap(checkMatch(leftTy, rightTy, pos), fn () => 
+      Log.success({exp=(), ty=Types.INT}))))
+
+  fun checkMatchTwoIntStr(left, right, pos) = 
+    Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
+    Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
+    Log.flatMap(checkMatchIntStr(leftTy, rightTy, pos), fn () => 
+      Log.success({exp=(), ty=Types.INT}))))
+
+  (* Checks for duplicated type definitions in the same recursive block *)
   fun checkForDuplicates (nil,nil) = Log.success()
     | checkForDuplicates ([],l) = Log.success()
     | checkForDuplicates (l,[]) = Log.success()
@@ -168,11 +196,18 @@ struct
         in
           Log.flatMap(transVar(venv, tenv, var), resolve)
         end
+
+        fun subscriptVar(sym, var, pos) =
+          let
+            
+          in
+            
+          end
     in
       case variable of
            A.SimpleVar(sym, pos) => simpleVar(sym, pos)
          | A.FieldVar(var, sym, pos) => fieldVar(var, sym, pos)
-         | A.SubscriptVar(var, sym, pos) => Log.success(PLACEHOLDER)
+         | A.SubscriptVar(var, sym, pos) => SubscriptVar(var, sym, pos)
     end
 
   and transExp(venv: venv, tenv: tenv, expression: A.exp): expty Log.log = 
@@ -315,60 +350,16 @@ struct
         | seqExp((exp, pos) :: nil) = trExp(exp) 
         | seqExp((exp, pos) :: exps) = Log.flatMap(trExp(exp), fn (_) => seqExp(exps))
 
-      and opExp(left, A.PlusOp, right, pos) = 
-            Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
-            Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
-            Log.flatMap(checkInt(leftTy, pos), fn () =>
-            Log.flatMap(checkInt(rightTy, pos), fn () =>
-              Log.success({exp=(), ty=Types.INT})))))
-        | opExp(left, A.MinusOp, right, pos) = 
-            Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
-            Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
-            Log.flatMap(checkInt(leftTy, pos), fn () =>
-            Log.flatMap(checkInt(rightTy, pos), fn () =>
-              Log.success({exp=(), ty=Types.INT})))))
-        | opExp(left, A.TimesOp, right, pos) = 
-            Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
-            Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
-            Log.flatMap(checkInt(leftTy, pos), fn () =>
-            Log.flatMap(checkInt(rightTy, pos), fn () =>
-              Log.success({exp=(), ty=Types.INT})))))
-        | opExp(left, A.DivideOp, right, pos) =
-            Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
-            Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
-            Log.flatMap(checkInt(leftTy, pos), fn () =>
-            Log.flatMap(checkInt(rightTy, pos), fn () =>
-              Log.success({exp=(), ty=Types.INT})))))
-        | opExp(left, A.EqOp, right, pos) = 
-            Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
-            Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
-            Log.flatMap(checkMatch(leftTy, rightTy, pos), fn () => 
-              Log.success({exp=(), ty=Types.INT}))))
-        | opExp(left, A.NeqOp, right, pos) = 
-            Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
-            Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
-            Log.flatMap(checkMatch(leftTy, rightTy, pos), fn () => 
-              Log.success({exp=(), ty=Types.INT}))))
-        | opExp(left, A.LtOp, right, pos) = 
-            Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
-            Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
-            Log.flatMap(checkMatchIntStr(leftTy, rightTy, pos), fn () => 
-              Log.success({exp=(), ty=Types.INT}))))
-        | opExp(left, A.LeOp, right, pos) = 
-            Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
-            Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
-            Log.flatMap(checkMatchIntStr(leftTy, rightTy, pos), fn () => 
-              Log.success({exp=(), ty=Types.INT}))))
-        | opExp(left, A.GtOp, right, pos) = 
-            Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
-            Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
-            Log.flatMap(checkMatchIntStr(leftTy, rightTy, pos), fn () => 
-              Log.success({exp=(), ty=Types.INT}))))
-        | opExp(left, A.GeOp, right, pos) =
-            Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
-            Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
-            Log.flatMap(checkMatchIntStr(leftTy, rightTy, pos), fn () => 
-              Log.success({exp=(), ty=Types.INT}))))
+      and opExp(left, A.PlusOp, right, pos) = checkMatchTwoInt(left, right, pos)
+        | opExp(left, A.MinusOp, right, pos) = checkMatchTwoInt(left, right, pos)
+        | opExp(left, A.TimesOp, right, pos) = checkMatchTwoInt(left, right, pos)
+        | opExp(left, A.DivideOp, right, pos) = checkMatchTwoInt(left, right, pos)
+        | opExp(left, A.EqOp, right, pos) = checkMatchTwoEq(left, right, pos)
+        | opExp(left, A.NeqOp, right, pos) = checkMatchTwoEq(left, right, pos)
+        | opExp(left, A.LtOp, right, pos) = checkMatchTwoIntStr(left, right, pos)
+        | opExp(left, A.LeOp, right, pos) = checkMatchTwoIntStr(left, right, pos)
+        | opExp(left, A.GtOp, right, pos) = checkMatchTwoIntStr(left, right, pos)
+        | opExp(left, A.GeOp, right, pos) = checkMatchTwoIntStr(left, right, pos)
 
       and callExp(func, args, pos) = 
         case S.look(venv, func) of 
