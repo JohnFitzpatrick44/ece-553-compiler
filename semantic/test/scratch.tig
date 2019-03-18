@@ -1,5 +1,7 @@
 let 
-  function k(a: string, b: int) = ()
+
+  type intArr = array of int
+  var a: intArr := 1
 in
-  k(3, "one")
+  a["ha"]
 end
