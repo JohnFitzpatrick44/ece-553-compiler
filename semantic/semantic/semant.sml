@@ -191,6 +191,7 @@ struct
             Log.flatMap(actualType(t, pos), fn at => 
               case at of
                 Types.RECORD(fields, _) => findSym(fields, sym, pos)
+              | Types.BOT => Log.success({ exp = (), ty = Types.BOT })
               | _ => 
                 Log.flatMap(typeToString pos t, fn tStr =>  
                   Log.failure({ exp = (), ty = Types.BOT }, pos, 
@@ -206,6 +207,7 @@ struct
         Log.flatMap(checkInt(expTy, pos), fn () =>
           case at of
             Types.ARRAY(typ, _) => Log.success({ exp = (), ty = typ })
+          | Types.BOT => Log.success({ exp = (), ty = Types.BOT })
           | _ => 
             Log.flatMap(typeToString pos ty, fn tStr =>  
               Log.failure({ exp = (), ty = Types.BOT }, pos, 
@@ -477,9 +479,21 @@ struct
                          end))
                     uniqueSet
             )))
+
+          fun checkCycle(headerEnv, uniqueSet) = foldr
+            (fn ({name, ty, pos}, acc) => 
+              Log.flatMap(acc, fn acc =>
+                case S.look(headerEnv, name) of
+                  SOME(t) => Log.map(actualType(t, pos), fn _ => ())
+                | NONE => Log.failure((), pos, "Something's wrong... the type isn't added to the env")))
+            (Log.success())
+            uniqueSet
+
         in
+          Log.flatMap(uniqueSet, fn uniqueSet => 
           Log.flatMap(headerEnv, fn headerEnv => 
-          Log.map(logs, fn (_) => { venv = venv, tenv = headerEnv }))
+          Log.flatMap(checkCycle(headerEnv, uniqueSet), fn () => 
+          Log.map(logs, fn (_) => { venv = venv, tenv = headerEnv }))))
         end
 
       fun functionDecs(fundecs) =

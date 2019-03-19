@@ -1,7 +1,8 @@
 let 
-
-  type intArr = array of int
-  var a: intArr := 1
+  type a = b
+  type b = c 
+  type c = d
+  type d = b
 in
   a["ha"]
 end
