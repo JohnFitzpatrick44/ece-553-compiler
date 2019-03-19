@@ -484,7 +484,15 @@ struct
             (fn ({name, ty, pos}, acc) => 
               Log.flatMap(acc, fn acc =>
                 case S.look(headerEnv, name) of
-                  SOME(t) => Log.map(actualType(t, pos), fn _ => ())
+                  SOME(t) => 
+                    Log.map(actualType(t, pos), fn at =>
+                      case at of
+                        Types.BOT => 
+                          (case t of 
+                            Types.NAME(sym, r) => r := SOME(Types.BOT)
+                          |  _ => ())
+                     |  _ => ()
+                    )
                 | NONE => Log.failure((), pos, "Something's wrong... the type isn't added to the env")))
             (Log.success())
             uniqueSet
