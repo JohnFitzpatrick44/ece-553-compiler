@@ -1,10 +1,18 @@
 let 
-  type a = b
-  type b = c 
-  type c = d
-  type d = b
+  type a = int
 
-  var k: a := 1
+  var k := 1
+
+  function f(i: int): a = 
+    let 
+      function g(i: int): int = g(i)
+    in 
+      g(10) 
+    end
 in
-  k + 1
+  let 
+    function f(i: int): a = k
+  in 
+    f(10)
+  end
 end
