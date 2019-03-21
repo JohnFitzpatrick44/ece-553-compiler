@@ -6,7 +6,6 @@ struct
       val () = FindEscape.findEscape(absyn)
       val () = PrintAbsyn.print(TextIO.stdOut, absyn)
     in
-      (* Semant.transProg absyn *)
-      ()
+      Semant.transProg absyn
     end
 end

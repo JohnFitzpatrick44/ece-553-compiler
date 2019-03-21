@@ -1,18 +1,10 @@
 let 
-  type a = int
+  type treeNode = {v: int, left: treeNode, right: treeNode}
 
-  var k := 1
-
-  function f(i: int): a = 
-    let 
-      function g(i: int): int = g(i)
-    in 
-      g(10) 
-    end
+  var root: treeNode := treeNode {v=1, 
+                                  left=nil, 
+                                  right=treeNode {v=2, left=nil, right=nil}}
+  function f(i: int) = f(root.v)
 in
-  let 
-    function f(i: int): a = k
-  in 
-    f(10)
-  end
+  f(10)
 end
