@@ -17,6 +17,14 @@ semantic/semant.sml
 semantic/main.sml
 semantic/translate.sml
 semantic/log.sml
+intermediate/frame.sig
+intermediate/MipsFrame.sml
+intermediate/printtree.sml
+intermediate/temp.sig
+intermediate/temp.sml
+intermediate/translate.sml
+intermediate/translate.sig
+intermediate/tree.sml
 
 $/smlnj-lib.cm
 $/ml-yacc-lib.cm
