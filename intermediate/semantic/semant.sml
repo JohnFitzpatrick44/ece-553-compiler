@@ -3,14 +3,15 @@ struct
 
   structure A = Absyn;
   structure S = Symbol;
+  structure Tr = Translate
 
   type venv = Env.enventry S.table
   type tenv = Types.ty S.table
-  type expty = { exp: Translate.exp, ty: Types.ty }
+  type expty = { exp: Tr.exp, ty: Types.ty }
   val teq = Types.eq
 
-  (* Read: todo *)
-  val PLACEHOLDER: expty = { exp = (), ty = Types.UNIT }
+  (* generated for type errors, so this value won't actually be used *)
+  val failExp = Tr.intLit 123456789 
 
   fun actualType(t: Types.ty, pos: int): Types.ty Log.log =
     let
@@ -168,49 +169,50 @@ struct
          | A.ArrayTy(sym, pos) => arrayTy(sym, pos)
     end
 
-  and transVar(venv: venv, tenv: tenv, variable: A.var): expty Log.log =
+  and transVar(lvl: Tr.level, venv: venv, tenv: tenv, variable: A.var): expty Log.log =
     let
       fun simpleVar(sym, pos) =
         case S.look(venv, sym) of
-          SOME(Env.VarEntry{ty}) =>
-            Log.map(actualType(ty, pos), fn at => { exp = (), ty = at })
+          SOME(Env.VarEntry{access, ty}) =>
+            Log.map(actualType(ty, pos), fn at =>
+              { exp = Tr.simpleVar(access, lvl),  ty = at }) 
         | _ =>
-            Log.failure({ exp = (), ty = Types.BOT }, pos, "Could not resolve variable " ^ (S.name sym))
+            Log.failure({ exp = failExp, ty = Types.BOT }, pos, "Could not resolve variable " ^ (S.name sym))
 
       fun fieldVar(var, sym, pos) =
         let
-          fun findSym(nil, s, pos) =
-                Log.failure({ exp = (), ty = Types.BOT }, pos, "Field ." ^ (S.name s) ^ " is not defined")
-            | findSym((sym, t)::rst, s, pos) =
+          fun findSym(nil, s, pos, idx, varExp) =
+                Log.failure({ exp = failExp, ty = Types.BOT }, pos, "Field ." ^ (S.name s) ^ " is not defined")
+            | findSym((sym, t)::rst, s, pos, idx, varExp) =
                 Log.flatMap(actualType(t, pos), fn at =>
                   if (S.id sym) = (S.id s)
-                  then Log.success({ exp = (), ty = at })
-                  else findSym(rst, s, pos))
+                  then Log.success({ exp = Tr.fieldVar(varExp, idx), ty = at })
+                  else findSym(rst, s, pos, idx+1))
 
-          fun resolve({exp=_, ty=t}) =
+          fun resolve({exp=varExp, ty=t}) =
             Log.flatMap(actualType(t, pos), fn at => 
               case at of
-                Types.RECORD(fields, _) => findSym(fields, sym, pos)
-              | Types.BOT => Log.success({ exp = (), ty = Types.BOT })
+                Types.RECORD(fields, _) => findSym(fields, sym, pos, 0, varExp)
+              | Types.BOT => Log.success({ exp = failExp, ty = Types.BOT })
               | _ => 
                 Log.flatMap(typeToString pos t, fn tStr =>  
-                  Log.failure({ exp = (), ty = Types.BOT }, pos, 
+                  Log.failure({ exp = failExp, ty = Types.BOT }, pos, 
                               "RECORD type expected, but was given " ^ tStr)))
         in
-          Log.flatMap(transVar(venv, tenv, var), resolve)
+          Log.flatMap(transVar(lvl, venv, tenv, var), resolve)
         end
 
       fun subscriptVar(var, exp, pos) =
-        Log.flatMap(transVar(venv, tenv, var), fn ({exp=_, ty=ty}) =>
+        Log.flatMap(transVar(venv, tenv, var), fn ({exp=varExp, ty=ty}) =>
         Log.flatMap(actualType(ty, pos), fn at =>
-        Log.flatMap(transExp(venv, tenv, exp), fn ({exp=_, ty=expTy}) =>
+        Log.flatMap(transExp(lvl, venv, tenv, exp), fn ({exp=expExp, ty=expTy}) =>
         Log.flatMap(checkInt(expTy, pos), fn () =>
           case at of
-            Types.ARRAY(typ, _) => Log.success({ exp = (), ty = typ })
-          | Types.BOT => Log.success({ exp = (), ty = Types.BOT })
+            Types.ARRAY(typ, _) => Log.success({ exp = Tr.subscript(varExp, expExp), ty = typ })
+          | Types.BOT => Log.success({ exp = failExp, ty = Types.BOT })
           | _ => 
             Log.flatMap(typeToString pos ty, fn tStr =>  
-              Log.failure({ exp = (), ty = Types.BOT }, pos, 
+              Log.failure({ exp = failExp, ty = Types.BOT }, pos, 
                           "ARRAY type expected, but was given " ^ tStr))))))
 
     in
@@ -220,14 +222,14 @@ struct
          | A.SubscriptVar(var, exp, pos) => subscriptVar(var, exp, pos)
     end
 
-  and transExp(venv: venv, tenv: tenv, expression: A.exp): expty Log.log =
+  and transExp(lvl: Tr.level, venv: venv, tenv: tenv, expression: A.exp): expty Log.log =
     let
 
       fun trExp(expression: A.exp): expty Log.log = case expression of
-         A.VarExp(var) => transVar(venv, tenv, var)
-       | A.NilExp => Log.success({ exp=(), ty=Types.NIL })
-       | A.IntExp(value) => Log.success({ exp=(), ty=Types.INT })
-       | A.StringExp(str, pos) => Log.success({ exp=(), ty=Types.STRING })
+         A.VarExp(var) => transVar(lvl, venv, tenv, var)
+       | A.NilExp => Log.success({ exp=Tr.nilLit(), ty=Types.NIL })
+       | A.IntExp(value) => Log.success({ exp=intLit value, ty=Types.INT })
+       | A.StringExp(str, pos) => Log.success({ exp=strLit str, ty=Types.STRING })
        | A.CallExp{func, args, pos} => callExp(func, args, pos)
        | A.OpExp{left, oper, right, pos} => opExp(left, oper, right, pos)
        | A.RecordExp{fields, typ, pos} => recordExp(fields, typ, pos)
@@ -236,11 +238,11 @@ struct
        | A.IfExp{test, then', else', pos} => ifExp(test, then', else', pos)
        | A.WhileExp{test, body, pos} => whileExp(test, body, pos)
        | A.ForExp{var, escape, lo, hi, body, pos} => forExp(var, escape, lo, hi, body, pos)
-       | A.BreakExp(pos) => Log.success({exp=(), ty=Types.UNIT})
+       | A.BreakExp(pos) => Log.success({exp=Tr.breakExp (Temp.newLabel()), ty=Types.UNIT})
        | A.LetExp{decs, body, pos} => letExp(decs, body, pos)
        | A.ArrayExp{typ, size, init, pos} => arrayExp(typ, size, init, pos)
 
-      and seqExp(nil) = Log.success({ exp = (), ty = Types.UNIT })
+      and seqExp(nil) = Log.success({ exp = Tr.seqExp nil, ty = Types.UNIT })
         | seqExp((exp, pos) :: nil) = trExp(exp)
         | seqExp((exp, pos) :: exps) = Log.flatMap(trExp(exp), fn (_) => seqExp(exps))
 
@@ -289,7 +291,7 @@ struct
                Log.failure({ exp = (), ty = Types.BOT }, pos, "Undefined function " ^ (S.name func))
 
       and letExp(decs, body, pos) =
-        Log.flatMap(transDecs(venv, tenv, decs), fn ({venv, tenv}) => transExp(venv, tenv, body))
+        Log.flatMap(transDecs(lvl, venv, tenv, decs), fn ({venv, tenv}) => transExp(lvl, venv, tenv, body))
 
       and recordExp(fields, typ, pos) =
           case S.look(tenv,typ) of
@@ -367,9 +369,9 @@ struct
         let
           val venvNew = S.enter (venv, var, Env.VarEntry {ty=Types.INT})
         in
-          Log.flatMap(transExp(venvNew, tenv, lo), fn {exp=loexp,ty=loty} => 
-          Log.flatMap(transExp(venvNew, tenv, hi), fn {exp=hiexp,ty=hity} => 
-          Log.flatMap(transExp(venvNew, tenv, body), fn {exp=bodyexp,ty=bodyty} => 
+          Log.flatMap(transExp(lvl, venvNew, tenv, lo), fn {exp=loexp,ty=loty} => 
+          Log.flatMap(transExp(lvl, venvNew, tenv, hi), fn {exp=hiexp,ty=hity} => 
+          Log.flatMap(transExp(lvl, venvNew, tenv, body), fn {exp=bodyexp,ty=bodyty} => 
           Log.flatMap(checkType(Types.INT, loty,pos, "For-lo"), fn loIsInt => 
           Log.flatMap(checkType(Types.INT, hity,pos, "For-hi"), fn hiIsInt => 
           Log.map(checkType(Types.UNIT, bodyty,pos, "For-body"), fn bodyIsUnit => 
@@ -408,18 +410,18 @@ struct
     end
 
 
-  and transDecs(venv: venv, tenv: tenv, decs: A.dec list): { venv: venv, tenv: tenv} Log.log =
+  and transDecs(lvl: Tr.level, venv: venv, tenv: tenv, decs: A.dec list): { venv: venv, tenv: tenv} Log.log =
     let
       fun reduce(dec, envs) =
-        Log.flatMap(envs, fn ({venv, tenv}) => transDec(venv, tenv, dec))
+        Log.flatMap(envs, fn ({venv, tenv}) => transDec(lvl, venv, tenv, dec))
     in
       foldl reduce (Log.success({venv=venv, tenv=tenv})) decs
     end
 
-  and transDec(venv: venv, tenv: tenv, declaration: A.dec): { venv: venv, tenv: tenv } Log.log =
+  and transDec(lvl: Tr.level, venv: venv, tenv: tenv, declaration: A.dec): { venv: venv, tenv: tenv } Log.log =
     let
       fun varDec(name, escape, typ, init, pos) =
-        Log.flatMap(transExp(venv, tenv, init), fn ({exp=_, ty=initType}) =>
+        Log.flatMap(transExp(lvl, venv, tenv, init), fn ({exp=_, ty=initType}) =>
         Log.flatMap(actualType(initType, pos), fn actualInitType =>
         Log.flatMap(
           case typ of
@@ -553,7 +555,7 @@ struct
           fun bodyCheck({name, params, result, body, pos}) =
             Log.flatMap(headerEnv, fn env =>
             Log.flatMap(withParams(params, env), fn funEnv =>
-            Log.flatMap(transExp(funEnv, tenv, body), fn ({exp=_, ty=resTy}) =>
+            Log.flatMap(transExp(lvl, funEnv, tenv, body), fn ({exp=_, ty=resTy}) =>
             Log.flatMap(resultToTy result, fn decResTy =>
             Log.flatMap(actualType(resTy, pos), fn resAT =>
             Log.flatMap(actualType(decResTy, pos), fn decResAT =>
@@ -580,6 +582,10 @@ struct
     end
 
   fun transProg (absyn: A.exp): unit =
-    (Log.report (transExp(Env.base_venv, Env.base_tenv, absyn)); ())
+    let 
+      val mainLevel = Tr.newLevel({parent=Tr.outerMost, name=Temp.namedLabel "main", formals=[]})
+    in
+      (Log.report (transExp(mainLevel, Tr.Env.base_venv, Env.base_tenv, absyn)); ())
+    end
 end
 
