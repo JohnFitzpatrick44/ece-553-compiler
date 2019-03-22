@@ -30,15 +30,14 @@ fun seq stmts =
     [s] => s
   | [s1, s2] => T.SEQ (s1, s2)
   | stm::slist => T.SEQ (stm, seq(slist))
-  | [] => () (*shouldn't happen*)
 
 
 fun followStatics (Top, _, _) = ErrorMsg.impossible "Item not found in static link chain"
   | followStatics (_, Top, _) = ErrorMsg.impossible "Item not found in static link chain"
   | followStatics (defLevel, useLevel, base) = 
       let 
-        val Sub ({usepar, usefra, useuniq}) = useLevel
-        val Sub ({_, _, defuniq}) = defLevel
+        val Sub {parent=usepar, frame=usefra, unique=useuniq} = useLevel
+        val Sub {parent=defpar, frame=deffra, unique=defuniq} = defLevel
       in
         if (defuniq = useuniq)
         then base
@@ -67,9 +66,9 @@ fun unEx (Ex e) = e
       end
   | unEx (Nx s) = T.ESEQ(s, T.CONST 0)
 
-fun unCx (Ex (T.CONST 0)) = fn (t, f) => T.JUMP(T.NAME f, [f])
-  | unCx (Ex (T.CONST 1)) = fn (t, f) => T.JUMP(T.NAME t, [t])
-  | unCx (Ex e) = fn (t, f) => T.CJUMP(T.NE, e, T.CONST 0, t, f)
+fun unCx (Ex (T.CONST 0)) = (fn (t, f) => T.JUMP(T.NAME f, [f]))
+  | unCx (Ex (T.CONST 1)) = (fn (t, f) => T.JUMP(T.NAME t, [t]))
+  | unCx (Ex e) = (fn (t, f) => T.CJUMP(T.NE, e, T.CONST 0, t, f))
   | unCx (Cx genstm) = genstm
   | unCx (Nx _) = ErrorMsg.impossible "Cannot unCx an Nx"
 
@@ -83,28 +82,30 @@ fun unNx (Ex e) = T.EXP e
 
 val outermost = Top
 
-fun newLevel {parent, name, formals} = Sub({parent=parent, frame=Frame.newFrame({name=name, true::formals}), ref ()})
+fun newLevel {parent, name, formals} = Sub({parent = parent, frame = Frame.newFrame({name=name, formals=(true::formals)}), unique = ref ()})
 
 fun formals level = 
   case level of
     Top => nil
-  | Sub({parent=_, frame=frame, _}) => 
+  | Sub({parent, frame, unique}) => 
       let 
         val tail = tl (Frame.formals frame) 
       in
-        map (fn acc => (level, acc)) formals 
+        map (fn acc => (level, acc)) tail 
       end
 
 fun allocLocal level esc = 
   case level of 
     Top => ErrorMsg.impossible "Cannot alloc locals to outermost level"
-  | Sub({parent=_, frame=frame, _}) => (level, Frame.allocLocal frame esc)
+  | Sub({parent, frame, unique}) => (level, Frame.allocLocal frame esc)
 
-fun procEntryExit (Top, _) = ErrorMsg.impossible "Cannot procEntryExit outermost level"
-  | procEntryExit (Sub({_, frame, _}), body) = 
+fun procEntryExit {level = level, body = body} = 
+  case level of 
+    Top => ErrorMsg.impossible "Cannot procEntryExit outermost level"
+  | Sub({parent, frame, unique}) =>
       let
-        val procBody = Frame.procEntryExit1(frame, unEx body)
-        val moveBody = T.MOVE(T.TEMP Frame.RV, procBody)
+        val moveBody = T.MOVE(T.TEMP Frame.RV, unEx body)
+        val procBody = Frame.procEntryExit1(frame, moveBody)
       in
         frags := Frame.PROC({body=procBody, frame=frame})::(!frags)
       end
@@ -123,18 +124,18 @@ fun simpleVar (dec, useLevel) =
     Ex(Frame.exp decacc (followStatics(declvl, useLevel, T.TEMP Frame.FP)))
   end
 
-fun subscriptVar (name, index) = 
+fun subscriptVar (addr, index) = 
   Ex(T.MEM(T.BINOP(T.PLUS, 
-                   unEx name, 
+                   unEx addr, 
                    T.BINOP(T.MUL, 
                            unEx index, 
                            T.CONST (Frame.wordSize)))))
 
-fun fieldVar (name, offset) = 
+fun fieldVar (addr, offset) = 
   Ex(T.MEM(T.BINOP(T.PLUS, 
-                   unEx name, 
+                   unEx addr, 
                    T.BINOP(T.MUL, 
-                           T.CONST(index), 
+                           T.CONST(offset), 
                            T.CONST (Frame.wordSize)))))
 
 
@@ -249,15 +250,15 @@ fun recordExp(fields) =
   let
     val len = length fields
     val r = Temp.newtemp()
-    val allocRecord = T.MOVE(T.TEMP r, Frame.externalCall("malloc", [Tr.CONST (len * Frame.wordSize)]))
+    val allocRecord = T.MOVE(T.TEMP r, Frame.externalCall("malloc", [T.CONST (len * Frame.wordSize)]))
     fun allocFields ([], index) = []
       | allocFields (exp::explist, index) = (
           T.MOVE(T.MEM(T.BINOP(T.PLUS, 
                                T.TEMP(r), 
-                               T.CONST(index*Frame.wordSize))), unEx exp)
+                               T.CONST(index * Frame.wordSize))), unEx exp)
           )::allocFields(explist, index+1) 
   in
-    Ex (T.ESEQ(T.SEQ(allocRecord, seq (allocFields (fields, 0))), T.Temp r))
+    Ex (T.ESEQ(T.SEQ(allocRecord, seq (allocFields (fields, 0))), T.TEMP r))
   end
 
 
@@ -274,7 +275,7 @@ fun arrayExp(sizeExp, initExp) =
 fun callExp (label, useLevel, defLevel, args) = 
   case defLevel of 
     Top => Ex(Frame.externalCall(Symbol.name label, map unEx args))
-  | Sub({_,_,_}) =>
+  | Sub({parent,frame,unique}) =>
       let 
         val sl = followStatics(defLevel, useLevel, T.TEMP Frame.FP)
       in 
@@ -299,8 +300,8 @@ fun strLit s =
   end
 
 
-fun stringEq (e1, e2) =  Ex(Frame.externalCall("stringEqual", [unEx e1,unEx e2]))
+fun stringEQ (e1, e2) =  Ex(Frame.externalCall("stringEqual", [unEx e1,unEx e2]))
 
-fun stringNeq (e1, e2) = Ex(T.BINOP(T.XOR, stringEq(e1, e2), T.CONST(1)))
+fun stringNEQ (e1, e2) = Ex(T.BINOP(T.XOR, unEx (stringEQ(e1, e2)), T.CONST(1)))
 
 end

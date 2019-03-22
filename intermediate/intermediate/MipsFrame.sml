@@ -1,27 +1,25 @@
 structure MipsFrame :> FRAME = 
 struct
 
-  type frame = {name: Temp.label, formals: access list, frameSize: int ref}
-
   datatype access = InFrame of int
                   | InReg of Temp.temp
 
+  type frame = {name: Temp.label, formals: access list, frameSize: int ref}
 
+
+  val wordSize = 4
   val aRegs = 4
 
   fun newFrame({name = name, formals = formals}) = 
     let 
+      val totalOffset = ref 0
       fun allocFormals([], offset, unescaped) = []
         | allocFormals(escape::elist, offset, unescaped) = 
-            let
-              val totalOffset = ref 0
-            in
-              if ((not escape) andalso (unescaped < aRegs))
-              then InReg(Temp.newtemp())::allocFormals(elist, offset, unescaped + 1)
-              else (totalOffset := !totalOffset + wordSize; InFrame(offset - wordSize)::allocFormals(elist, offset - wordSize, unescaped))
-            end
+            if ((not escape) andalso (unescaped < aRegs))
+            then InReg(Temp.newtemp())::allocFormals(elist, offset, unescaped + 1)
+            else (totalOffset := !totalOffset + wordSize; InFrame(offset - wordSize)::allocFormals(elist, offset - wordSize, unescaped))
     in
-      {name = name, formals = allocFormals(formals, 0, 0), totalOffset}
+      {name = name, formals = allocFormals(formals, 0, 0), frameSize = totalOffset}
     end
 
 
@@ -35,18 +33,16 @@ struct
       fun getOffset       {name=_, formals=_, frameSize = offset} = !offset
     in 
       if esc
-      then (incrementOffset fr; InFrame(-(getOffset frame)))
+      then (incrementOffset fr; InFrame(0 - (getOffset fr)))
       else InReg(Temp.newtemp())
     end
 
   fun exp (InReg t) exp = Tree.TEMP(t)
-    | exp (InFrame offset) exp = Tree.MEM(Tree.BINOP(Tree.PLUS, exp, T.CONST(offset)))
+    | exp (InFrame offset) exp = Tree.MEM(Tree.BINOP(Tree.PLUS, exp, Tree.CONST(offset)))
   
   fun procEntryExit1 (frame, stm) = stm (* to be implemented in a later phase *)
 
-  fun externalCall (s,args) = T.CALL(T.NAME(Temp.namedlabel s), args)
-
-  val wordSize = 4
+  fun externalCall (s,args) = Tree.CALL(Tree.NAME(Temp.namedlabel s), args)
 
   val FP = Temp.newtemp()
   val RV = Temp.newtemp()
@@ -55,6 +51,6 @@ struct
                 | STRING of Temp.label * string
 
   (* TODO *)
-  fun string (label, str) = S.name label ^ str
+  fun string (label, str) = Symbol.name label ^ str
 
 end

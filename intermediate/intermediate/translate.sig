@@ -11,7 +11,7 @@ val newLevel : {parent: level, name: Temp.label, formals: bool list} -> level
 val formals: level -> access list
 val allocLocal: level -> bool -> access
 val procEntryExit: {level:level, body:exp} -> unit
-val getResult : unit -> Frame.frag list
+val getResult : unit -> frag list
 
 
 
