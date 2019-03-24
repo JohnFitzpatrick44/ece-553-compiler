@@ -1,8 +1,8 @@
 structure Semant :> Semantic =
 struct
 
-  structure A = Absyn;
-  structure S = Symbol;
+  structure A = Absyn
+  structure S = Symbol
   structure Tr = Translate
 
   type venv = Env.enventry S.table
@@ -419,7 +419,7 @@ struct
                     Log.flatMap(checkType(Types.INT, sizety, pos, "Array Size"), fn sizeIsInt => 
                     Log.map(checkType(arrayType, initty, pos, "Array Type"), fn arrSameType => 
                       if sizeIsInt andalso arrSameType
-                      then {exp=failExp, ty=t}
+                      then {exp=Tr.arrayExp(sizeexp, initexp), ty=t}
                       else {exp=failExp, ty=Types.BOT}))))
                 | _ => 
                     Log.flatMap(typeToString pos t, fn tyStr =>  

@@ -19,8 +19,6 @@ type access = level * Frame.access
 
 type frag = Frame.frag
 
-
-
 (* helpers *)
 
 val frags: frag list ref = ref [] 
@@ -79,6 +77,8 @@ fun unNx (Ex e) = T.EXP e
   | unNx (Nx n) = n
 
 val outermost = Top
+
+fun clear() = frags := []
 
 fun newLevel {parent, name, formals} = 
   Sub({parent = parent, frame = Frame.newFrame({name=name, formals=(true::formals)}), unique = ref ()})

@@ -44,4 +44,7 @@ val strLit: string -> exp
 val stringEQ:  exp * exp -> exp
 val stringNEQ:  exp * exp -> exp
 
+(* for testing *)
+val clear: unit -> unit
+
 end
