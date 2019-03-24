@@ -1,2 +1,2 @@
 Skeleton 5
-d2f3d"Temp"d"Tree"d"Symbol"ad"MipsFrame"jh0gp1c"FRAME"
+d2f7d"Int"d"Temp"Cd"Tree"d"String"d"Symbol"d"TextIO"d"Printtree"Nad"MipsFrame"jh0gp1c"FRAME"
