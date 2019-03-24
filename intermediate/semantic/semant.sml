@@ -246,35 +246,35 @@ struct
         | seqExp((exp, pos) :: nil) = trExp(exp)
         | seqExp((exp, pos) :: exps) = Log.flatMap(trExp(exp), fn (_) => seqExp(exps))
 
-      and checkMatchTwoInt(left, right, pos) = 
-        Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
-        Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
+      and checkMatchTwoInt(oper, left, right, pos) = 
+        Log.flatMap(trExp left, fn ({exp=leftExp, ty=leftTy}) =>
+        Log.flatMap(trExp right, fn ({exp=rightExp, ty=rightTy}) =>
         Log.flatMap(checkInt(leftTy, pos), fn () =>
         Log.flatMap(checkInt(rightTy, pos), fn () =>
-          Log.success({exp=(), ty=Types.INT})))))
+          Log.success({exp=Tr.binop(oper, leftExp, rightExp), ty=Types.INT})))))
 
       and checkMatchTwoEq(left, right, pos) = 
-        Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
-        Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
+        Log.flatMap(trExp left, fn ({exp=leftExp, ty=leftTy}) =>
+        Log.flatMap(trExp right, fn ({exp=rightExp, ty=rightTy}) =>
         Log.flatMap(checkMatch(leftTy, rightTy, pos), fn () => 
-          Log.success({exp=(), ty=Types.INT}))))
+          Log.success({exp=Tr.relop(oper, leftExp, rightExp), ty=Types.INT}))))
 
       and checkMatchTwoIntStr(left, right, pos) = 
-        Log.flatMap(trExp left, fn ({exp=_, ty=leftTy}) =>
-        Log.flatMap(trExp right, fn ({exp=_, ty=rightTy}) =>
+        Log.flatMap(trExp left, fn ({exp=leftExp, ty=leftTy}) =>
+        Log.flatMap(trExp right, fn ({exp=rightExp, ty=rightTy}) =>
         Log.flatMap(checkMatchIntStr(leftTy, rightTy, pos), fn () => 
-          Log.success({exp=(), ty=Types.INT}))))
+          Log.success({exp=Tr.relop(oper, leftExp, rightExp), ty=Types.INT}))))
 
-      and opExp(left, A.PlusOp, right, pos) = checkMatchTwoInt(left, right, pos)
-        | opExp(left, A.MinusOp, right, pos) = checkMatchTwoInt(left, right, pos)
-        | opExp(left, A.TimesOp, right, pos) = checkMatchTwoInt(left, right, pos)
-        | opExp(left, A.DivideOp, right, pos) = checkMatchTwoInt(left, right, pos)
-        | opExp(left, A.EqOp, right, pos) = checkMatchTwoEq(left, right, pos)
-        | opExp(left, A.NeqOp, right, pos) = checkMatchTwoEq(left, right, pos)
-        | opExp(left, A.LtOp, right, pos) = checkMatchTwoIntStr(left, right, pos)
-        | opExp(left, A.LeOp, right, pos) = checkMatchTwoIntStr(left, right, pos)
-        | opExp(left, A.GtOp, right, pos) = checkMatchTwoIntStr(left, right, pos)
-        | opExp(left, A.GeOp, right, pos) = checkMatchTwoIntStr(left, right, pos)
+      and opExp(left, A.PlusOp, right, pos) = checkMatchTwoInt(A.PlusOp, left, right, pos)
+        | opExp(left, A.MinusOp, right, pos) = checkMatchTwoInt(A.MinusOp, left, right, pos)
+        | opExp(left, A.TimesOp, right, pos) = checkMatchTwoInt(A.TimesOp, left, right, pos)
+        | opExp(left, A.DivideOp, right, pos) = checkMatchTwoInt(A.DivideOp, left, right, pos)
+        | opExp(left, A.EqOp, right, pos) = checkMatchTwoEq(A.EqOp, left, right, pos)
+        | opExp(left, A.NeqOp, right, pos) = checkMatchTwoEq(A.NeqOp, left, right, pos)
+        | opExp(left, A.LtOp, right, pos) = checkMatchTwoIntStr(A.LtOp, left, right, pos)
+        | opExp(left, A.LeOp, right, pos) = checkMatchTwoIntStr(A.LeOp, left, right, pos)
+        | opExp(left, A.GtOp, right, pos) = checkMatchTwoIntStr(A.GtOp, left, right, pos)
+        | opExp(left, A.GeOp, right, pos) = checkMatchTwoIntStr(A.GeOp, left, right, pos)
 
       and callExp(func, args, pos) =
         case S.look(venv, func) of
