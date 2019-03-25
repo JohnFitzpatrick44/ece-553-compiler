@@ -397,7 +397,6 @@ struct
               else {exp=failExp, ty=Types.BOT}))))
         end
 
-      (* need hellllppppp... what should idxExp be? *)
       and forExp(var, escape, lo, hi, body, pos) =
         let
           val exitLabel = Temp.newlabel()
@@ -411,7 +410,7 @@ struct
           Log.flatMap(checkType(Types.INT, hity,pos, "For-hi"), fn hiIsInt => 
           Log.map(checkType(Types.UNIT, bodyty,pos, "For-body"), fn bodyIsUnit => 
             if loIsInt andalso hiIsInt andalso bodyIsUnit 
-            then {exp=Tr.forExp(failExp, loexp, hiexp, bodyexp, exitLabel), ty=Types.UNIT}
+            then {exp=Tr.forExp(Tr.simpleVar(idxAccess, lvl), loexp, hiexp, bodyexp, exitLabel), ty=Types.UNIT}
             else {exp=failExp,ty=Types.BOT}))))))
         end
 
