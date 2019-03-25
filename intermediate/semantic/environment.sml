@@ -2,7 +2,7 @@ structure Env :> Environment =
 struct
   structure Tr = Translate
 
-  datatype enventry = VarEntry of {access: Tr.access, ty: Types.ty}
+  datatype enventry = VarEntry of {access: Tr.access, ty: Types.ty, isLoopVar: bool}
                     | FunEntry of {level: Tr.level, label: Temp.label, formals: Types.ty list, result: Types.ty}
 
   val base_tenv: Types.ty Symbol.table = 
