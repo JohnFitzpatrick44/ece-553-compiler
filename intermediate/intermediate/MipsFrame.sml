@@ -59,7 +59,8 @@ struct
        TextIO.output(outstream, String.concatWith ", " (map accessToStr (formals frame)));
        TextIO.output(outstream, "\n");
        Printtree.printtree(outstream, body))
-    | printFrag(outstream, STRING(label, str)) = TextIO.output(outstream, "STRING FRAG: " ^ str ^ "\n")
+    | printFrag(outstream, STRING(label, str)) = 
+        TextIO.output(outstream, "----- STR FRAG(" ^ (Symbol.name label) ^ ")----\n" ^ str ^ "\n")
 
   (* TODO *)
   fun string (label, str) = Symbol.name label ^ str

@@ -1,5 +1,7 @@
 let 
-  function g(i: int, j: int): int = i+j
-in
-  g(2, 3)
+  var x: int := 50
+  function g(i: int): int = x + 1
+in 
+  x + 1
 end
+  

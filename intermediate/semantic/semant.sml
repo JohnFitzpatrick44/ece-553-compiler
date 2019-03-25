@@ -18,6 +18,8 @@ struct
     | zip([], x::xs) = []
     | zip(x::xs, []) = []
     | zip(x::xs, y::ys) = (x, y) :: zip(xs, ys)
+  fun getLastOr [] fallback = fallback
+    | getLastOr lst fallback = List.last lst
 
   (* generated for type errors, so this value won't actually be used *)
   val failExp = Tr.intLit 123456789 
@@ -257,9 +259,11 @@ struct
           SOME((_, exitLabel)) => Log.success({exp=Tr.breakExp exitLabel, ty=Types.UNIT})
         | NONE => Log.failure({exp=failExp, ty=Types.BOT}, pos, "Break used outside a loop")
 
-      and seqExp(nil) = Log.success({ exp = Tr.seqExp nil, ty = Types.UNIT })
-        | seqExp((exp, pos) :: nil) = trExp(exp)
-        | seqExp((exp, pos) :: exps) = Log.flatMap(trExp(exp), fn (_) => seqExp(exps))
+      and seqExp exps = 
+        Log.flatMap(Log.all (map (fn (exp, pos) => trExp exp) exps), fn expTyLst =>
+        Log.flatMap(Log.success(map (fn {exp=e,ty=t} => t) expTyLst), fn tyLst =>
+        Log.map(Log.success(map (fn {exp=e,ty=t} => e) expTyLst), fn expLst =>
+          {exp=Tr.seqExp expLst, ty=getLastOr tyLst Types.UNIT})))
 
       and checkMatchTwoInt(oper, left, right, pos) = 
         Log.flatMap(trExp left, fn ({exp=leftExp, ty=leftTy}) =>
