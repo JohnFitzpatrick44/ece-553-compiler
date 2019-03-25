@@ -15,8 +15,10 @@ semantic/types.sml
 semantic/semant.sig
 semantic/semant.sml
 semantic/main.sml
-semantic/translate.sml
 semantic/log.sml
+semantic/escape.sig
+semantic/escape.sml
+semantic/canon.sml
 intermediate/frame.sig
 intermediate/MipsFrame.sml
 intermediate/printtree.sml

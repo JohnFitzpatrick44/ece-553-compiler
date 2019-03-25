@@ -19,8 +19,6 @@ type access = level * Frame.access
 
 type frag = Frame.frag
 
-
-
 (* helpers *)
 
 val frags: frag list ref = ref [] 
@@ -33,9 +31,11 @@ fun seq stmts =
   | _ => ErrorMsg.impossible "Empty sequence list received"
 
 
-fun followStatics (Top, _, _) = ErrorMsg.impossible "Item not found in static link chain"
-  | followStatics (_, Top, _) = ErrorMsg.impossible "Item not found in static link chain"
-  | followStatics (defLevel, useLevel, base) = 
+fun followStatics (ctx, Top, _, _) = ErrorMsg.impossible 
+                                      ("Item not found in static link chain (" ^ ctx ^ ")")
+  | followStatics (ctx, _, Top, _) = ErrorMsg.impossible 
+                                      ("Item not found in static link chain (" ^ ctx ^ ")")
+  | followStatics (ctx, defLevel, useLevel, base) = 
       let 
         val Sub {parent=usepar, frame=usefra, unique=useuniq} = useLevel
         val Sub {parent=defpar, frame=deffra, unique=defuniq} = defLevel
@@ -46,7 +46,7 @@ fun followStatics (Top, _, _) = ErrorMsg.impossible "Item not found in static li
           let 
             val static = hd (Frame.formals usefra)
           in
-            followStatics (defLevel, usepar, Frame.exp static base)
+            followStatics (ctx, defLevel, usepar, Frame.exp static base)
           end
       end
 
@@ -77,13 +77,12 @@ fun unNx (Ex e) = T.EXP e
   | unNx (Cx genstm) = T.EXP(unEx(Cx genstm))
   | unNx (Nx n) = n
 
-
-
-
-
 val outermost = Top
 
-fun newLevel {parent, name, formals} = Sub({parent = parent, frame = Frame.newFrame({name=name, formals=(true::formals)}), unique = ref ()})
+fun clear() = frags := []
+
+fun newLevel {parent, name, formals} = 
+  Sub({parent = parent, frame = Frame.newFrame({name=name, formals=(true::formals)}), unique = ref ()})
 
 fun formals level = 
   case level of
@@ -113,16 +112,18 @@ fun procEntryExit {level = level, body = body} =
 
 fun getResult() = !frags
 
-
-
-
+fun printResult outstream = 
+  (print ("RV: " ^ (Temp.makestring Frame.RV) ^ "\n");
+   List.app (fn frag => Frame.printFrag(outstream, frag)) (!frags))
 
 (* Variables *)
 fun simpleVar (dec, useLevel) = 
   let
     val (declvl, decacc) = dec
+    val () = print (Frame.accessToStr decacc)
+    val () = print "\n"
   in
-    Ex(Frame.exp decacc (followStatics(declvl, useLevel, T.TEMP Frame.FP)))
+    Ex(Frame.exp decacc (followStatics("simpleVar", declvl, useLevel, T.TEMP Frame.FP)))
   end
 
 fun subscriptVar (addr, index) = 
@@ -230,9 +231,9 @@ fun whileExp(test, body, exit) =
              T.LABEL exit])
   end
 
-fun forExp(indexExp, loExp, hiExp, body, exit) = 
+fun forExp(idxExp, loExp, hiExp, body, exit) = 
   let 
-    val index = unEx indexExp
+    val index = unEx idxExp
     val lo = unEx loExp
     val hi = unEx hiExp
     val start = Temp.newlabel()
@@ -280,15 +281,10 @@ fun callExp (label, useLevel, defLevel, args) =
     Top => Ex(Frame.externalCall(Symbol.name label, map unEx args))
   | Sub({parent,frame,unique}) =>
       let 
-        val sl = followStatics(defLevel, useLevel, T.TEMP Frame.FP)
+        val sl = followStatics("callExp", defLevel, useLevel, T.TEMP Frame.FP)
       in 
         Ex(T.CALL(T.NAME label, sl::(map unEx args)))
       end
-
-
-
-
-
 
 fun intLit n = Ex(T.CONST n)
 

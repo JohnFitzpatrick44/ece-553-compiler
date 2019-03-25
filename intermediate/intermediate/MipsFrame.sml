@@ -50,6 +50,18 @@ struct
   datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string
 
+  fun accessToStr(InFrame(offset)) = "InFrame(" ^ (Int.toString offset) ^ ")"
+    | accessToStr(InReg(t)) = Temp.makestring t
+
+  fun printFrag(outstream, PROC{body, frame}) = 
+      (TextIO.output(outstream, "-----FRAG("^(Symbol.name(name frame))^")-----\n");
+       TextIO.output(outstream, "args: ");
+       TextIO.output(outstream, String.concatWith ", " (map accessToStr (formals frame)));
+       TextIO.output(outstream, "\n");
+       Printtree.printtree(outstream, body))
+    | printFrag(outstream, STRING(label, str)) = 
+        TextIO.output(outstream, "----- STR FRAG(" ^ (Symbol.name label) ^ ")----\n" ^ str ^ "\n")
+
   (* TODO *)
   fun string (label, str) = Symbol.name label ^ str
 

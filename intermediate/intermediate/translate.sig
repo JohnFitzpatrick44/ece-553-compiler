@@ -12,15 +12,12 @@ val formals: level -> access list
 val allocLocal: level -> bool -> access
 val procEntryExit: {level:level, body:exp} -> unit
 val getResult : unit -> frag list
-
-
+val printResult : TextIO.outstream -> unit
 
 (* Variable declarations *)
 val simpleVar: access * level -> exp
 val subscriptVar: exp * exp -> exp
 val fieldVar: exp * int -> exp
-
-
 
 (* Expressions *)
 val binop: Absyn.oper * exp * exp -> exp 
@@ -46,5 +43,8 @@ val strLit: string -> exp
 
 val stringEQ:  exp * exp -> exp
 val stringNEQ:  exp * exp -> exp
+
+(* for testing *)
+val clear: unit -> unit
 
 end

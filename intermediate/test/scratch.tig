@@ -1,10 +1,8 @@
 let 
-  type a = b
-  type b = c 
-  type c = d
-  type d = b
-
-  var k: a := 1
-in
-  k + 1
+  var x: int := 50
+  var sum := 0
+in 
+  for i:=x to 10 do
+    sum := sum + i
 end
+  
