@@ -20,6 +20,7 @@ sig
   datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string
 
+  val accessToStr: access -> string
   val printFrag: TextIO.outstream * frag -> unit
 
   val string : Tree.label * string -> string

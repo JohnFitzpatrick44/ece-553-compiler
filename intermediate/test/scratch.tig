@@ -1,6 +1,5 @@
 let 
-  var x := 1
-  var y := 4
+  function g(i: int, j: int): int = i+j
 in
-  x + y 
+  g(2, 3)
 end

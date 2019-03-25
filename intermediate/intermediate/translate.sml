@@ -119,6 +119,8 @@ fun printResult outstream =
 fun simpleVar (dec, useLevel) = 
   let
     val (declvl, decacc) = dec
+    val () = print (Frame.accessToStr decacc)
+    val () = print "\n"
   in
     Ex(Frame.exp decacc (followStatics("simpleVar", declvl, useLevel, T.TEMP Frame.FP)))
   end
@@ -280,11 +282,6 @@ fun callExp (label, useLevel, defLevel, args) =
       in 
         Ex(T.CALL(T.NAME label, sl::(map unEx args)))
       end
-
-
-
-
-
 
 fun intLit n = Ex(T.CONST n)
 

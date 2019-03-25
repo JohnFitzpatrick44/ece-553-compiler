@@ -18,6 +18,7 @@ semantic/main.sml
 semantic/log.sml
 semantic/escape.sig
 semantic/escape.sml
+semantic/canon.sml
 intermediate/frame.sig
 intermediate/MipsFrame.sml
 intermediate/printtree.sml

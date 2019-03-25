@@ -14,6 +14,10 @@ struct
 
   fun headOption [] = NONE
     | headOption(x::rst) = SOME(x)
+  fun zip([], []) = []
+    | zip([], x::xs) = []
+    | zip(x::xs, []) = []
+    | zip(x::xs, y::ys) = (x, y) :: zip(xs, ys)
 
   (* generated for type errors, so this value won't actually be used *)
   val failExp = Tr.intLit 123456789 
@@ -554,7 +558,6 @@ struct
               SOME(ty) => actualType(ty, pos)
             | NONE => Log.failure(Types.BOT, pos, "Undeclared type " ^ (S.name sym))
 
-          fun fieldToEsc({name=_, escape=esc, typ=_, pos=_}) = !esc
 
           fun resultToTy(NONE) = Log.success(Types.UNIT)
             | resultToTy(SOME(sym, pos)) =
@@ -574,8 +577,8 @@ struct
             (Log.success [])
             fundecs 
 
-          fun extractEsc params = 
-            map (fn {name=_, escape=esc, typ=_, pos=_} => !esc) params
+          fun fieldToEsc({name=_, escape=esc, typ=_, pos=_}) = !esc
+          fun extractEsc params = map fieldToEsc params
 
           (* creates env with empty function headers *)
           val headerEnv = 
@@ -599,15 +602,14 @@ struct
           fun withParams(name, params, venv) = 
             let
               val SOME(Env.FunEntry{level, label, formals, result}) = S.look(venv, name)
+              val fncLevel = Tr.newLevel{parent=level, name=label, formals=extractEsc params}
               val venv' = foldl
-                (fn (field, acc) =>
+                (fn ((field, access), acc) =>
                   Log.flatMap(acc, fn acc =>
                   Log.map(fieldToTy field, fn fieldTy =>
-                     S.enter(acc, fieldName field, 
-                             Env.VarEntry{access=Tr.allocLocal level (fieldToEsc field), ty=fieldTy}))))
+                     S.enter(acc, fieldName field, Env.VarEntry{access=access, ty=fieldTy}))))
                 (Log.success venv)
-                params
-              val fncLevel = Tr.newLevel{parent=level, name=label, formals=extractEsc params}
+                (zip(params, Tr.formals fncLevel))
             in
               Log.map(venv', fn venv' => (fncLevel, venv'))
             end
