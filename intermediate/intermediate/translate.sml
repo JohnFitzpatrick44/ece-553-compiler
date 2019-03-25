@@ -30,6 +30,7 @@ fun seq stmts =
     [s] => s
   | [s1, s2] => T.SEQ (s1, s2)
   | stm::slist => T.SEQ (stm, seq(slist))
+  | _ => ErrorMsg.impossible "Empty sequence list received"
 
 
 fun followStatics (Top, _, _) = ErrorMsg.impossible "Item not found in static link chain"
@@ -154,6 +155,7 @@ fun binop (oper, e1, e2) =
       | A.MinusOp => T.MINUS
       | A.TimesOp => T.MUL
       | A.DivideOp => T.DIV
+      | _ => ErrorMsg.impossible "Unidentified binop received"
   in 
     Ex(T.BINOP(toper, left, right))
   end
@@ -170,6 +172,7 @@ fun relop (oper, e1, e2) =
       | A.LeOp => T.LE
       | A.GtOp => T.GT
       | A.GeOp => T.GE
+      | _ => ErrorMsg.impossible "Unidentified relop received"
   in 
     Cx((fn (t, f) => T.CJUMP(toper, left, right, t, f))) 
   end
