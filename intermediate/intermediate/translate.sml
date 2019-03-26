@@ -141,29 +141,15 @@ fun subscriptVar (addr, index, size) =
                              unEx addr, 
                              T.BINOP(T.MUL, 
                                      unEx index, 
-                                     T.CONST (Frame.wordSize)))),
+                                     T.CONST (Frame.wordSize))))),
         T.JUMP (T.NAME exit, [exit]),
         T.LABEL invalid,
         T.MOVE(T.TEMP r, Frame.externalCall("arrayOutOfBounds", [])),
         T.JUMP (T.NAME exit, [exit]),
         T.LABEL exit
-      ], T.TEMP r)
+      ], T.TEMP r))
 
 end
-
-
-
-Nx(seq [T.MOVE (index, lo),
-            T.CJUMP (T.LE, index, hi, start, exit),
-            T.LABEL start,
-            unNx body,
-            T.CJUMP (T.LT, index, hi, increment, exit),
-            T.LABEL increment,
-            T.MOVE (index, T.BINOP (T.PLUS, index, T.CONST 1)),
-            T.JUMP (T.NAME start, [start]),
-            T.LABEL exit])
-
-
 
 
 
