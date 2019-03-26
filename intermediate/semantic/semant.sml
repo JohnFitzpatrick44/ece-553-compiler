@@ -170,7 +170,9 @@ struct
         end
       fun arrayTy(sym, pos) =
         case S.look(tenv, sym) of
-          SOME(t) => Log.success(Types.ARRAY(t, 0, ref ()))
+          SOME(t) => case t of 
+                      Types.Array(_,size,_) => Log.success(Types.ARRAY(t, size, ref ()))
+                    | _ => Log.failure(Types.BOT, pos, "Could not resolve type " ^ (S.name sym))
         | NONE => Log.failure(Types.BOT, pos, "Could not resolve type " ^ (S.name sym))
 
     in

@@ -146,10 +146,9 @@ fun subscriptVar (addr, index, size) =
         T.LABEL invalid,
         T.MOVE(T.TEMP r, Frame.externalCall("arrayOutOfBounds", [])),
         T.JUMP (T.NAME exit, [exit]),
-        T.LABEL exit
-      ], T.TEMP r))
-
-end
+        T.LABEL exit], 
+      T.TEMP r))
+  end
 
 
 
