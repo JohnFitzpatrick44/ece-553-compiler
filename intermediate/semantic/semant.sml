@@ -10,7 +10,7 @@ struct
   type expty = { exp: Tr.exp, ty: Types.ty }
   val teq = Types.eq
 
-  type loopInfo = (S.symbol option) * Temp.label (* loop var symbol, exit label *)
+  type loopExit = Temp.label (* loop var symbol, exit label *)
 
   fun headOption [] = NONE
     | headOption(x::rst) = SOME(x)
@@ -180,11 +180,11 @@ struct
          | A.ArrayTy(sym, pos) => arrayTy(sym, pos)
     end
 
-  and transVar(lvl: Tr.level, venv: venv, tenv: tenv, variable: A.var, loops: loopInfo list): expty Log.log =
+  and transVar(lvl: Tr.level, venv: venv, tenv: tenv, variable: A.var, loops: loopExit list): expty Log.log =
     let
       fun simpleVar(sym, pos) =
         case S.look(venv, sym) of
-          SOME(Env.VarEntry{access, ty}) =>
+          SOME(Env.VarEntry{access, ty, isLoopVar}) =>
             Log.map(actualType(ty, pos), fn at =>
               { exp = Tr.simpleVar(access, lvl),  ty = at }) 
         | _ =>
@@ -233,7 +233,7 @@ struct
          | A.SubscriptVar(var, exp, pos) => subscriptVar(var, exp, pos)
     end
 
-  and transExp(lvl: Tr.level, venv: venv, tenv: tenv, expression: A.exp, loops: loopInfo list): expty Log.log =
+  and transExp(lvl: Tr.level, venv: venv, tenv: tenv, expression: A.exp, loops: loopExit list): expty Log.log =
     let
 
       fun trExp(expression: A.exp): expty Log.log = case expression of
@@ -256,7 +256,7 @@ struct
 
       and breakExp(pos) = 
         case headOption loops of 
-          SOME((_, exitLabel)) => Log.success({exp=Tr.breakExp exitLabel, ty=Types.UNIT})
+          SOME(exitLabel) => Log.success({exp=Tr.breakExp exitLabel, ty=Types.UNIT})
         | NONE => Log.failure({exp=failExp, ty=Types.BOT}, pos, "Break used outside a loop")
 
       and seqExp exps = 
@@ -389,7 +389,7 @@ struct
           val exitLabel = Temp.newlabel()  
         in
           Log.flatMap(trExp test, fn {exp=testexp,ty=testty} => 
-          Log.flatMap(transExp(lvl, venv, tenv, body, (NONE, exitLabel) :: loops), fn {exp=bodyexp,ty=bodyty} => 
+          Log.flatMap(transExp(lvl, venv, tenv, body, exitLabel :: loops), fn {exp=bodyexp,ty=bodyty} => 
           Log.flatMap(checkType(Types.INT,testty,pos, "While-test"), fn testIsInt => 
           Log.map(checkType(Types.UNIT,bodyty,pos, "While-body"), fn bodyIsUnit => 
               if testIsInt andalso bodyIsUnit 
@@ -401,11 +401,11 @@ struct
         let
           val exitLabel = Temp.newlabel()
           val idxAccess = Tr.allocLocal lvl (!escape)
-          val venvNew = S.enter (venv, var, Env.VarEntry {access=idxAccess, ty=Types.INT})
+          val venvNew = S.enter (venv, var, Env.VarEntry {access=idxAccess, ty=Types.INT, isLoopVar=true})
         in
           Log.flatMap(transExp(lvl, venvNew, tenv, lo, loops), fn {exp=loexp,ty=loty} => 
           Log.flatMap(transExp(lvl, venvNew, tenv, hi, loops), fn {exp=hiexp,ty=hity} => 
-          Log.flatMap(transExp(lvl, venvNew, tenv, body, (SOME(var), exitLabel) :: loops), fn {exp=bodyexp,ty=bodyty} => 
+          Log.flatMap(transExp(lvl, venvNew, tenv, body, exitLabel :: loops), fn {exp=bodyexp,ty=bodyty} => 
           Log.flatMap(checkType(Types.INT, loty,pos, "For-lo"), fn loIsInt => 
           Log.flatMap(checkType(Types.INT, hity,pos, "For-hi"), fn hiIsInt => 
           Log.map(checkType(Types.UNIT, bodyty,pos, "For-body"), fn bodyIsUnit => 
@@ -433,19 +433,31 @@ struct
                       Log.failure({exp=failExp, ty=Types.BOT}, pos, "Array expected, given " ^ tyStr)))
 
       and assignExp(var, exp, pos) =
-        Log.flatMap(transVar (lvl, venv, tenv, var, loops), fn {exp=varexp,ty=varty} => 
-        Log.flatMap(trExp exp, fn {exp=expexp,ty=expty} => 
-        Log.map(checkType (varty, expty, pos, "Assign"), fn isSameType => 
-          if isSameType
-          then {exp=Tr.assignExp(varexp, expexp),ty=Types.UNIT}
-          else {exp=failExp, ty = Types.BOT})))
+        let 
+          val checkLoopvar = case var of
+                               A.SimpleVar(sym, _) => 
+                                 (case S.look(venv, sym) of
+                                   SOME(Env.VarEntry{access=_, ty=_, isLoopVar=isLoopVar}) => 
+                                     if isLoopVar
+                                     then Log.failure((), pos, "Loop variable " ^ (S.name sym) ^ " reassigned")
+                                     else Log.success())
+                                 | _ => Log.success()
+        in
+            Log.flatMap(checkLoopvar, fn () => 
+            Log.flatMap(transVar (lvl, venv, tenv, var, loops), fn {exp=varexp,ty=varty} => 
+            Log.flatMap(trExp exp, fn {exp=expexp,ty=expty} => 
+            Log.map(checkType (varty, expty, pos, "Assign"), fn isSameType => 
+              if isSameType
+              then {exp=Tr.assignExp(varexp, expexp),ty=Types.UNIT}
+              else {exp=failExp, ty = Types.BOT}))))
+        end
     in
       trExp expression
     end
 
 
   and transDecs(lvl: Tr.level, venv: venv, tenv: tenv, decs: A.dec list, loops:
-  loopInfo list): { venv: venv, tenv: tenv, exps: Tr.exp list} Log.log=
+  loopExit list): { venv: venv, tenv: tenv, exps: Tr.exp list} Log.log=
     let
       fun reduce(dec, envs) =
         Log.flatMap(envs, fn ({venv, tenv, exps}) => 
@@ -458,7 +470,7 @@ struct
     end
 
   and transDec(lvl: Tr.level, venv: venv, tenv: tenv, declaration: A.dec, loops:
-  loopInfo list): { venv: venv, tenv: tenv, exp: Tr.exp option} Log.log =
+  loopExit list): { venv: venv, tenv: tenv, exp: Tr.exp option} Log.log =
     let
       fun varDec(name, escape, typ, init, pos) =
         let 
@@ -484,11 +496,11 @@ struct
             if teq(actualInitType, actualDecType)
             then 
                 (* not... really sure if we should be using assignExp here *)
-                Log.success({venv=S.enter(venv, name, Env.VarEntry{access=access,ty=decType}),
+                Log.success({venv=S.enter(venv, name, Env.VarEntry{access=access,ty=decType,isLoopVar=false}),
                               tenv=tenv,
                               exp=SOME(Tr.assignExp(Tr.simpleVar(access, lvl), initExp))})
             else Log.failure(
-                  {venv=S.enter(venv, name, Env.VarEntry{access=access, ty=decType}),
+                  {venv=S.enter(venv, name, Env.VarEntry{access=access,ty=decType,isLoopVar=false}),
                    tenv=tenv, 
                    exp=NONE}, pos,
                    ("The initializer's type does not " ^
@@ -610,7 +622,7 @@ struct
                 (fn ((field, access), acc) =>
                   Log.flatMap(acc, fn acc =>
                   Log.map(fieldToTy field, fn fieldTy =>
-                     S.enter(acc, fieldName field, Env.VarEntry{access=access, ty=fieldTy}))))
+                     S.enter(acc, fieldName field, Env.VarEntry{access=access, ty=fieldTy, isLoopVar=false}))))
                 (Log.success venv)
                 (zip(params, Tr.formals fncLevel))
             in

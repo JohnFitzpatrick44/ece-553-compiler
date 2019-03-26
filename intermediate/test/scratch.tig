@@ -1,8 +1,13 @@
 let 
-  var x: int := 50
+  var x: int := 0
   var sum := 0
 in 
   for i:=x to 10 do
-    sum := sum + i
+    let 
+      var i := i * i
+    in 
+      (i := 7;
+       sum := sum + i)
+    end
 end
   
