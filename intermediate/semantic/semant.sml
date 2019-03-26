@@ -53,7 +53,7 @@ struct
     | Types.STRING => Log.success("String")
     | Types.UNIT => Log.success("Unit")
     | Types.BOT => Log.success("⊥")
-    | Types.ARRAY(t, _, _) =>
+    | Types.ARRAY(t, _) =>
         Log.flatMap(typeToString(pos)(t), fn x => Log.success("Array of " ^ x))
     | Types.RECORD(lst, id) => recordString(lst, pos)
     | Types.NAME(_, _) =>
@@ -170,7 +170,7 @@ struct
         end
       fun arrayTy(sym, pos) =
         case S.look(tenv, sym) of
-          SOME(t) => Log.success(Types.ARRAY(t, 0, ref ()))
+          SOME(t) => Log.success(Types.ARRAY(t, ref ()))
         | NONE => Log.failure(Types.BOT, pos, "Could not resolve type " ^ (S.name sym))
 
     in
@@ -219,7 +219,7 @@ struct
         Log.flatMap(transExp(lvl, venv, tenv, exp, loops), fn ({exp=expExp, ty=expTy}) =>
         Log.flatMap(checkInt(expTy, pos), fn () =>
           case at of
-            Types.ARRAY(typ, size, _) => Log.success({ exp = Tr.subscriptVar(varExp, expExp, size), ty = typ })
+            Types.ARRAY(typ, _) => Log.success({ exp = Tr.subscriptVar(varExp, expExp), ty = typ })
           | Types.BOT => Log.success({ exp = failExp, ty = Types.BOT })
           | _ => 
             Log.flatMap(typeToString pos ty, fn tStr =>  
@@ -420,7 +420,7 @@ struct
           | SOME(t) =>
               Log.flatMap(actualType(t,pos), fn at => 
                 case at of
-                  Types.ARRAY(arrayType,_,unique) =>
+                  Types.ARRAY(arrayType,unique) =>
                     Log.flatMap(trExp size, fn {exp=sizeexp,ty=sizety} =>
                     Log.flatMap(trExp init, fn {exp=initexp,ty=initty} =>
                     Log.flatMap(checkType(Types.INT, sizety, pos, "Array Size"), fn sizeIsInt => 

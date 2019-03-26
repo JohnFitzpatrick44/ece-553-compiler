@@ -126,15 +126,16 @@ fun simpleVar (dec, useLevel) =
     Ex(Frame.exp decacc (followStatics("simpleVar", declvl, useLevel, T.TEMP Frame.FP)))
   end
 
-fun subscriptVar (addr, index, size) =
+fun subscriptVar (addr, index) =
   let
      val valid = Temp.newlabel()
      val invalid = Temp.newlabel()
      val exit = Temp.newlabel()
      val r = Temp.newtemp()
+     val size = Frame.externalCall("arraySize", [unEx addr])
    in 
     Ex(T.ESEQ(seq [
-        T.CJUMP (T.LT, unEx index, T.CONST size, valid, invalid),
+        T.CJUMP (T.LT, unEx index, size, valid, invalid),
         T.LABEL valid,
         T.MOVE(T.TEMP r,
                T.MEM(T.BINOP(T.PLUS, 
