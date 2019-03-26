@@ -8,7 +8,7 @@ struct
           | NIL
           | INT
           | STRING
-          | ARRAY of ty * unique
+          | ARRAY of ty * int * unique
 	        | NAME of Symbol.symbol * ty option ref
 	        | UNIT
           | BOT
@@ -19,7 +19,7 @@ struct
     | eq(NIL, NIL) = true
     | eq(INT, INT) = true
     | eq(STRING, STRING) = true
-    | eq(ARRAY(_, r1), ARRAY(_, r2)) = r1 = r2
+    | eq(ARRAY(_, _, r1), ARRAY(_, _, r2)) = r1 = r2
     | eq(NAME(s1, _), NAME(s2, _)) = (Symbol.id s1) = (Symbol.id s2)
     | eq(UNIT, UNIT) = true
     | eq(_, BOT) = true

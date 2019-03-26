@@ -16,7 +16,7 @@ val printResult : TextIO.outstream -> unit
 
 (* Variable declarations *)
 val simpleVar: access * level -> exp
-val subscriptVar: exp * exp -> exp
+val subscriptVar: exp * exp * int -> exp
 val fieldVar: exp * int -> exp
 
 (* Expressions *)
