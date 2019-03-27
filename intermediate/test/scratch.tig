@@ -1,13 +1,7 @@
 let 
-  var x: int := 0
-  var sum := 0
+  type intArr = array of int
+  var x := intArr[10] of 0
 in 
-  for i:=x to 10 do
-    let 
-      var i := i * i
-    in 
-      (i := 7;
-       sum := sum + i)
-    end
+  x[a]
 end
   

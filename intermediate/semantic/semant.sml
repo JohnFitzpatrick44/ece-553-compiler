@@ -251,7 +251,6 @@ struct
        | A.ForExp{var, escape, lo, hi, body, pos} => forExp(var, escape, lo, hi, body, pos)
        | A.BreakExp(pos) => breakExp(pos) 
        | A.LetExp{decs, body, pos} => letExp(decs, body, pos)
-
        | A.ArrayExp{typ, size, init, pos} => arrayExp(typ, size, init, pos)
 
       and breakExp(pos) = 

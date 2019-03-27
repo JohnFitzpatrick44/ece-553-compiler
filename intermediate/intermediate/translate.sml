@@ -132,10 +132,10 @@ fun subscriptVar (addr, index) =
      val invalid = Temp.newlabel()
      val exit = Temp.newlabel()
      val r = Temp.newtemp()
-     val size = Frame.externalCall("arraySize", [unEx addr])
+     val sizeExp = T.MEM(T.BINOP(T.MINUS, unEx addr, T.CONST Frame.wordSize))
    in 
     Ex(T.ESEQ(seq [
-        T.CJUMP (T.LT, unEx index, size, valid, invalid),
+        T.CJUMP (T.LT, unEx index, sizeExp, valid, invalid),
         T.LABEL valid,
         T.MOVE(T.TEMP r,
                T.MEM(T.BINOP(T.PLUS, 
@@ -146,7 +146,6 @@ fun subscriptVar (addr, index) =
         T.JUMP (T.NAME exit, [exit]),
         T.LABEL invalid,
         T.MOVE(T.TEMP r, Frame.externalCall("arrayOutOfBounds", [])),
-        T.JUMP (T.NAME exit, [exit]),
         T.LABEL exit], 
       T.TEMP r))
   end
@@ -289,9 +288,21 @@ fun recordExp(fields) =
 fun arrayExp(sizeExp, initExp) = 
   let
     val r = Temp.newtemp()
-    val allocArray = T.MOVE(T.TEMP r, Frame.externalCall("initArray", [unEx sizeExp, unEx initExp]))
+    val size = Temp.newtemp()
+
+    val putToSizeTemp = T.MOVE(T.TEMP size, T.BINOP(T.MUL, unEx sizeExp, T.CONST Frame.wordSize))
+
+    val actualSizeExp = T.BINOP(T.PLUS, T.TEMP size, T.CONST Frame.wordSize)
+    val allocArray = T.MOVE(T.TEMP r, Frame.externalCall("initArray", [actualSizeExp, unEx initExp]))
+
+    val putSizeInArr = T.MOVE(T.MEM(T.TEMP r), T.TEMP size)
   in
-    Ex(T.ESEQ(allocArray, T.TEMP r))
+    Ex(T.ESEQ(seq[
+        putToSizeTemp,
+        allocArray,
+        putSizeInArr
+      ],
+      T.BINOP(T.PLUS, T.TEMP r, T.CONST Frame.wordSize))) (* give pointer to a[1] instead of a[0]*)
   end
 
 
