@@ -1,12 +1,10 @@
-structure Translate :> TRANSLATE =
+functor Translate(Frame: FRAME) :> TRANSLATE
+where type frag = Frame.frag =																	 
 struct
 
-structure Frame : FRAME = MipsFrame
+type frag = Frame.frag
 structure T = Tree
 structure A = Absyn
-
-
-
 
 datatype exp = Ex of T.exp
              | Nx of T.stm
@@ -16,8 +14,6 @@ datatype level = Top
                | Sub of {parent: level, frame: Frame.frame, unique: unit ref}
 
 type access = level * Frame.access
-
-type frag = Frame.frag
 
 (* helpers *)
 
@@ -120,8 +116,6 @@ fun printResult outstream =
 fun simpleVar (dec, useLevel) = 
   let
     val (declvl, decacc) = dec
-    val () = print (Frame.accessToStr decacc)
-    val () = print "\n"
   in
     Ex(Frame.exp decacc (followStatics("simpleVar", declvl, useLevel, T.TEMP Frame.FP)))
   end
