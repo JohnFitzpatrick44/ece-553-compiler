@@ -34,15 +34,20 @@ struct
 	val T8 = Temp.newtemp()
 	val T9 = Temp.newtemp()
 
-	val specialregs = [("$ra", RA), ("$v0", RV), ("$sp", SP), ("$fp", FP), ("$0", ZERO)]
-	val argregs = [("$a0", A0), ("$a1", A1), ("$a2", A2), ("$a3", A3)]
-	val calleesaves = [("$s0", S0), ("$s1", S1), ("$s2", S2), ("$s3", S3),
+	val specialregspairs = [("$ra", RA), ("$v0", RV), ("$sp", SP), ("$fp", FP), ("$0", ZERO)]
+	val argregspairs = [("$a0", A0), ("$a1", A1), ("$a2", A2), ("$a3", A3)]
+	val calleesavespairs = [("$s0", S0), ("$s1", S1), ("$s2", S2), ("$s3", S3),
 										 ("$s4", S4), ("$s5", S5), ("$s6", S6), ("$s7", S7)]
-	val callersaves = [("$t0", T0), ("$t1", T1), ("$t2", T2), ("$t3", T3), ("$t4", T4), 
+	val callersavespairs = [("$t0", T0), ("$t1", T1), ("$t2", T2), ("$t3", T3), ("$t4", T4), 
 										("$t5", T5), ("$t6", T6), ("$t7", T7), ("$t8", T8), ("$t9", T9)]
+
+  val specialregs = map (fn (s, r) => r) specialregspairs
+  val argregs = map (fn (s, r) => r) argregspairs
+  val calleesaves = map (fn (s, r) => r) calleesavespairs
+  val callersaves = map (fn (s, r) => r) callersavespairs
 	
 
-	val registers = map (fn (s, r) => s) (specialregs @ argregs @ calleesaves @ callersaves)
+	val registers = map (fn (s, r) => s) (specialregspairs @ argregspairs @ calleesavespairs @ callersavespairs)
 
   datatype access = InFrame of int
                   | InReg of Temp.temp
@@ -88,7 +93,7 @@ struct
 
 	fun procEntryExit2 (frame, body) = 
 		body @ [Assem.OPER{assem="", 
-										 	 src=[ZERO, RA, SP, FP, RV] @ (map (fn (s, r) => r) calleesaves), 
+										 	 src=[ZERO, RA, SP, FP, RV] @ (map (fn (s, r) => r) calleesavespairs), 
 											 dst=[], 
 											 jump=SOME []}] (* no idea why it's SOME[] in the book *)
 
@@ -97,11 +102,16 @@ struct
 		 body = body,
 		 epilog = "END " ^ Symbol.name name ^ "\n"}	(* placeholder *)
 
+
+  val tempMap = foldl (fn ((r, t), table) => Temp.Table.enter(table, t, r)) Temp.Table.empty [specialregspairs@argregspairs@calleesaves@callersaves]
+
   datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string
 
   fun accessToStr(InFrame(offset)) = "InFrame(" ^ (Int.toString offset) ^ ")"
-    | accessToStr(InReg(t)) = Temp.makestring t
+    | accessToStr(InReg(t)) = case Temp.Table.look(tempMap,t) of
+                                SOME(r) => r
+                              | NONE => Temp.makestring t 
 
   fun printFrag(outstream, PROC{body, frame}) = 
       (TextIO.output(outstream, "-----FRAG("^(Symbol.name(name frame))^")-----\n");

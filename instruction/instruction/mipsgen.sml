@@ -25,9 +25,25 @@ struct
 
 			(* we can take care of > 4 args later... or do we even ?? *)
 			fun munchArgs(idx, []) = []
-				| munchArgs(idx, arg::args) = (munchExp arg) :: (munchArgs (idx+1, args))
+			  | munchArgs(idx, arg::args) = (*(munchExp arg) :: (munchArgs (idx+1, args))*)
+					if idx < (List.length Frame.argregs)
+					then 
+						let
+							val src = munchExp arg
+							val dst = (List.nth (Frame.argregs, i))
+							val moveStm = T.MOVE(T.TEMP dst, T.TEMP src)
+						in
+							munchStm(moveStm);
+                  			dst::munchArgs(idx+1,args)
+						end
+					else
+						[] (*???*)
 
-			and munchStm(T.MOVE(T.TEMP t, T.CONST c)) = emit(oper("li `d0, " ^ iToS c, [t], [], NONE))
+			and munchStm (T.SEQ(a, b)) = (munchStm(a); munchStm(b))
+
+				(* MOVES *)
+				(* Between regs *)
+				| munchStm(T.MOVE(T.TEMP t, T.CONST c)) = emit(oper("li `d0, " ^ iToS c, [t], [], NONE))
 
 				| munchStm(T.MOVE(T.TEMP t, T.CALL(T.NAME(lab), args))) = 
 						(emit(oper("jal `j0", [Frame.RV], munchArgs(0, args), SOME [lab]));
@@ -97,7 +113,7 @@ struct
 							 emit(oper("bne `s0, `s1, `j0", [], [munchExp e1, munchExp e2], SOME [t])))
 
 				| munchStm(T.JUMP(T.NAME(lab), labs)) = emit(oper("j `j0", [], [], SOME(labs)))
-				| munchStm(T.LABEL(lab)) = emit(label(labStr lab ^ ":", lab))
+				| munchStm(T.LABEL(lab)) = emit(label(labStr lab ^ ":\n", lab))
 
 			and	munchExp(T.BINOP(T.PLUS, T.CONST c1, T.CONST c2)) = 
 						result(fn r => emit(oper("li `d0, " ^ iToS (c1+c2), [r], [], NONE)))
