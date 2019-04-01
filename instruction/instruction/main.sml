@@ -9,13 +9,17 @@ fun getsome (SOME x) = x
 
 fun emitproc out (F.PROC{body,frame}) =
   let 
+		val _ = print "---------------------------------\n"
 		val _ = print ("emit " ^ Temp.labelString (F.name frame) ^ "\n")
-(*          val _ = Printtree.printtree(out,body); *)
+		(* val _ = Printtree.printtree(out,body) *)
 	  val stms = Canon.linearize body
-(*          val _ = app (fn s => Printtree.printtree(out,s)) stms; *)
     val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
+		val _ = print "-------------Linearized------------\n"
+		val _ = app (fn s => Printtree.printtree(out,s)) stms'
+		val _ = print "-------------Result----------\n"
 	  val instrs = List.concat(map (MipsGen.codegen frame) stms') 
-    val format0 = Assem.format(Temp.makestring)
+    val format0 = Assem.format(Temp.makestring) 
+	  (* Temp.makestring for now, we'll change it later on registor alloc *)
   in 
 		app (fn i => TextIO.output(out,format0 i)) instrs
   end
@@ -33,6 +37,14 @@ fun emitproc out (F.PROC{body,frame}) =
           val frags = (FindEscape.prog absyn; S.transProg absyn)
        in 
            withOpenFile (filename ^ ".s") (fn out => (app (emitproc out) frags))
+      end
+	
+	fun test filename = 
+      let val _ = Tr.clear() 
+					val absyn = Parse.parse filename
+          val frags = (FindEscape.prog absyn; S.transProg absyn)
+       in	 
+           app (emitproc TextIO.stdOut) frags
       end
 end
 

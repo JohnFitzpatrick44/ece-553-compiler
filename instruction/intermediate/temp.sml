@@ -21,6 +21,4 @@ local structure F = Format
 end
 	
 	fun labelString l = Symbol.name l
-
-
 end
