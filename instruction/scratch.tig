@@ -1,5 +1,5 @@
 let
-	function g(a: int, b: int) = print("hi")
+	function g(a: int, b: int): int = (print("hi") ; i )
 in
 	g(1, 2)
 end
