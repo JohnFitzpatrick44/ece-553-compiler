@@ -286,16 +286,17 @@ fun arrayExp(sizeExp, initExp) =
   let
     val r = Temp.newtemp()
     val size = Temp.newtemp()
+	  val actualSizeTemp = Temp.newtemp()
 
-    val putToSizeTemp = T.MOVE(T.TEMP size, T.BINOP(T.MUL, unEx sizeExp, T.CONST Frame.wordSize))
-
-    val actualSizeExp = T.BINOP(T.PLUS, T.TEMP size, T.CONST Frame.wordSize)
-    val allocArray = T.MOVE(T.TEMP r, Frame.externalCall("initArray", [actualSizeExp, unEx initExp]))
-
+		val putToSizeTemp = T.MOVE(T.TEMP size, unEx sizeExp)
+    val putToActualSizeTemp = T.MOVE(T.TEMP actualSizeTemp, T.BINOP(T.PLUS, T.TEMP size, T.CONST 1))
+    val allocArray = T.MOVE(T.TEMP r, Frame.externalCall("initArray", 
+					[T.BINOP(T.MUL, T.TEMP actualSizeTemp, T.CONST Frame.wordSize), unEx initExp]))
     val putSizeInArr = T.MOVE(T.MEM(T.TEMP r), T.TEMP size)
   in
     Ex(T.ESEQ(seq[
         putToSizeTemp,
+        putToActualSizeTemp,
         allocArray,
         putSizeInArr
       ],

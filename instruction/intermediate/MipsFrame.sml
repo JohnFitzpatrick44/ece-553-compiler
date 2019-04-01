@@ -40,7 +40,7 @@ struct
   fun exp (InReg t) exp = Tree.TEMP(t)
     | exp (InFrame offset) exp = Tree.MEM(Tree.BINOP(Tree.PLUS, exp, Tree.CONST(offset)))
   
-  fun procEntryExit1 (frame, stm) = stm (* to be implemented in a later phase *)
+  fun procEntryExit1 (frame, stm) = stm (* view shift - to be implemented in a later phase *)
 
   fun externalCall (s,args) = Tree.CALL(Tree.NAME(Temp.namedlabel s), args)
 
