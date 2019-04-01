@@ -18,10 +18,15 @@ fun emitproc out (F.PROC{body,frame}) =
 		val _ = app (fn s => Printtree.printtree(out,s)) stms'
 		val _ = print "-------------Result----------\n"
 	  val instrs = List.concat(map (MipsGen.codegen frame) stms') 
+		val instrs' = F.procEntryExit2(frame, instrs)
+		val {body=instrs'', prolog=prolog, epilog=epilog} = F.procEntryExit3(frame, instrs')
+
     val format0 = Assem.format(Temp.makestring) 
 	  (* Temp.makestring for now, we'll change it later on registor alloc *)
   in 
-		app (fn i => TextIO.output(out,format0 i)) instrs
+		TextIO.output(out, prolog);
+		app (fn i => TextIO.output(out,format0 i)) instrs'';
+		TextIO.output(out, epilog)
   end
 
   | emitproc out (F.STRING(lab,s)) = TextIO.output(out,F.string(lab,s))
