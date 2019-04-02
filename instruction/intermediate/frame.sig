@@ -31,7 +31,7 @@ sig
 
   val string : Tree.label * string -> string
 
-  val tempMap: register Temp.Table.table
+  (*val tempMap: register Temp.Table.table*)
 
   val specialregs: Temp.temp list
   val argregs: Temp.temp list

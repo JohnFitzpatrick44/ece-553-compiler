@@ -104,7 +104,7 @@ struct
 		 epilog = "END " ^ Symbol.name name ^ "\n"}	(* placeholder *)
 
 
-  val tempMap = foldl (fn ((r, t), table) => Temp.Table.enter(table, t, r)) Temp.Table.empty [specialregspairs@argregspairs@calleesaves@callersaves]
+  val tempMap = foldl (fn ((r, t), table) => Temp.Table.enter(table, t, r)) Temp.Table.empty (specialregspairs@argregspairs@calleesavespairs@callersavespairs)
 
   datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string
