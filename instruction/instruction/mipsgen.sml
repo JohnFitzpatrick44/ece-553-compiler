@@ -20,7 +20,6 @@ struct
 			val ilist = ref (nil : A.instr list)
 			fun emit x = ilist := x :: !ilist
 			fun result(gen) = let val t = Temp.newtemp() in gen t; t end
-			fun withTemp(gen) = let val t = Temp.newtemp() in gen t end
 			val toDoTemp = Temp.newtemp()
 
 			(* we can take care of > 4 args later... or do we even ?? *)
@@ -112,6 +111,14 @@ struct
 
 				| munchStm(T.CJUMP(T.GE, e1, e2, t, f)) = emit(oper("bge `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
 
+				| munchStm(T.CJUMP(T.ULT, e1, e2, t, f)) = emit(oper("bltu `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
+
+				| munchStm(T.CJUMP(T.ULE, e1, e2, t, f)) = emit(oper("bleu `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
+
+				| munchStm(T.CJUMP(T.UGT, e1, e2, t, f)) = emit(oper("bgtu `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
+
+				| munchStm(T.CJUMP(T.UGE, e1, e2, t, f)) = emit(oper("bgeu `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
+
 				| munchStm(T.CJUMP(T.EQ, e1, e2, t, f)) = emit(oper("beq `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
 
 				| munchStm(T.CJUMP(T.NE, e1, e2, t, f)) = emit(oper("bne `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
@@ -124,46 +131,95 @@ struct
 
 				| munchStm (T.EXP e) = (munchExp e; ())
 
+				| munchStm _ = ErrorMsg.impossible "Could not munch statement"
+
+
+
 			and	munchExp(T.BINOP(T.PLUS, T.CONST c1, T.CONST c2)) = 
 						result(fn r => emit(oper("li `d0, " ^ iToS (c1+c2), [r], [], NONE)))
-			  |	munchExp(T.BINOP(T.PLUS, e1, T.CONST c)) = 
+
+			    | munchExp(T.BINOP(T.PLUS, e1, T.CONST c)) = 
 						result(fn r => emit(oper("addi `d0, `s0, " ^ iToS c, [r], [munchExp e1], NONE)))
-			  |	munchExp(T.BINOP(T.PLUS, T.CONST c, e1)) = 
+			    | munchExp(T.BINOP(T.PLUS, T.CONST c, e1)) = 
 						result(fn r => emit(oper("addi `d0, `s0, " ^ iToS c, [r], [munchExp e1], NONE)))
-				|	munchExp(T.BINOP(T.PLUS, e1, e2)) = 
+				| munchExp(T.BINOP(T.PLUS, e1, e2)) = 
 						result(fn r => emit(oper("add `d0, `s0, `s1", [r], [munchExp e1, munchExp e2], NONE)))
 
 				| munchExp(T.BINOP(T.MINUS, T.CONST c1, T.CONST c2)) = 
 						result(fn r => emit(oper("li `d0, " ^ iToS(c1-c2), [r], [], NONE)))
-			  |	munchExp(T.BINOP(T.MINUS, e1, T.CONST c)) = 
-						result(fn r => emit(oper("addi `d0, `s0, -" ^ iToS c, [r], [munchExp e1], NONE)))
-			  |	munchExp(T.BINOP(T.MINUS, e1, e2)) = 
+			    | munchExp(T.BINOP(T.MINUS, e1, T.CONST c)) = 
+						result(fn r => emit(oper("addi `d0, `s0, " ^ iToS (~c), [r], [munchExp e1], NONE)))
+			    | munchExp(T.BINOP(T.MINUS, e1, e2)) = 
 						result(fn r => emit(oper("sub `d0, `s0, `s1", [r], [munchExp e1, munchExp e2], NONE)))
 
 				| munchExp(T.BINOP(T.MUL, T.CONST c1, T.CONST c2)) = 
 						result(fn r => emit(oper("li `d0, " ^ iToS(c1*c2), [r], [], NONE)))
 				| munchExp(T.BINOP(T.MUL, e1, e2)) = 
-						result(fn r => (emit(oper("mult `s0, `s1", [], [munchExp e1, munchExp e2], NONE));
-														emit(oper("mflo `d0", [r], [], NONE))))
+						result(fn r => emit(oper("mult `s0, `s1\nmflo `d0", [r], [munchExp e1, munchExp e2], NONE)))
+
 				| munchExp(T.BINOP(T.DIV, T.CONST c1, T.CONST c2)) = 
 						result(fn r => emit(oper("li `d0, " ^ iToS(c1 div c2), [r], [], NONE)))
 				| munchExp(T.BINOP(T.DIV, e1, e2)) = 
-						result(fn r => (emit(oper("div `s0, `s1", [], [munchExp e1, munchExp e2], NONE));
-														emit(oper("mflo `d0", [r], [], NONE))))
+						result(fn r => emit(oper("div `s0, `s1\nmflo `d0", [r], [munchExp e1, munchExp e2], NONE)))
 
-				| munchExp(T.CONST c) = result(fn r => emit(oper("li `d0, " ^ iToS c, [r], [], NONE)))
+          		| munchExp (T.BINOP(T.AND, e, T.CONST c)) =
+            			result(fn r => emit(oper("andi `d0, `s0, " ^ iToS c, [r], [munchExp e], NONE)))
+            	| munchExp (T.BINOP(T.AND, T.CONST c, e)) =
+            			result(fn r => emit(oper("andi `d0, `s0, " ^ iToS c, [r], [munchExp e], NONE)))
+            	| munchExp (T.BINOP(T.AND, e1, e2)) =
+            			result(fn r => emit(oper("and `d0, `s0, `s1", [r], [munchExp e1, munchExp e2], NONE)))
 
-				| munchExp(T.MEM(T.BINOP(T.PLUS, T.TEMP t, T.CONST c))) = 
-						result(fn r => emit(oper("lw `d0, " ^ iToS c ^ "(`s0)", [r], [t], NONE)))
-				| munchExp(T.MEM(T.BINOP(T.PLUS, T.CONST c, T.TEMP t))) = 
-						result(fn r => emit(oper("lw `d0, " ^ iToS c ^ "(`s0)", [r], [t], NONE)))
-				| munchExp(T.MEM(T.BINOP(T.MINUS, T.TEMP t, T.CONST c))) = 
-						result(fn r => emit(oper("lw `d0, " ^ iToS (0-c) ^ "(`s0)", [r], [t], NONE)))
+            	| munchExp (T.BINOP(T.OR, e, T.CONST c)) =
+            			result(fn r => emit(oper("ori `d0, `s0, " ^ iToS c, [r], [munchExp e], NONE)))
+            	| munchExp (T.BINOP(T.OR, T.CONST c, e)) =
+            			result(fn r => emit(oper("ori `d0, `s0, " ^ iToS c, [r], [munchExp e], NONE)))
+            	| munchExp (T.BINOP(T.OR, e1, e2)) =
+            			result(fn r => emit(oper("or `d0, `s0, `s1", [r], [munchExp e1, munchExp e2], NONE)))
+
+            	| munchExp (T.BINOP(T.XOR, e, T.CONST c)) =
+            			result(fn r => emit(oper("xori `d0, `s0, " ^ iToS c, [r], [munchExp e], NONE)))
+            	| munchExp (T.BINOP(T.XOR, T.CONST c, e)) =
+            			result(fn r => emit(oper("xori `d0, `s0, " ^ iToS c, [r], [munchExp e], NONE)))
+            	| munchExp (T.BINOP(T.XOR, e1, e2)) =
+            			result(fn r => emit(oper("xor `d0, `s0, `s1", [r], [munchExp e1, munchExp e2], NONE)))
+
+          		| munchExp (T.BINOP(T.LSHIFT, e, T.CONST c)) =
+            			result (fn r => emit (oper("sll `d0, `s0, " ^ iToS c, [r], [munchExp e], NONE))) 
+            	| munchExp (T.BINOP(T.LSHIFT, e1, e2)) =
+            			result (fn r => emit (oper("sllv `d0, `s0, `s1", [r], [munchExp e1, munchExp e2], NONE))) 
+
+            	| munchExp (T.BINOP(T.RSHIFT, e, T.CONST c)) =
+            			result (fn r => emit (oper("srl `d0, `s0, " ^ iToS c, [r], [munchExp e], NONE))) 
+            	| munchExp (T.BINOP(T.RSHIFT, e1, e2)) =
+            			result (fn r => emit (oper("srlv `d0, `s0, `s1", [r], [munchExp e1, munchExp e2], NONE))) 
+
+            	| munchExp (T.BINOP(T.ARSHIFT, e, T.CONST c)) =
+            			result (fn r => emit (oper("sra `d0, `s0, " ^ iToS c, [r], [munchExp e], NONE))) 
+            	| munchExp (T.BINOP(T.ARSHIFT, e1, e2)) =
+            			result (fn r => emit (oper("srav `d0, `s0, `s1", [r], [munchExp e1, munchExp e2], NONE))) 
+
+
+				| munchExp(T.MEM(T.CONST c)) = 
+						result(fn r => emit(oper("lw `d0, " ^ iToS c ^ "($zero)", [r], [], NONE)))
+				| munchExp(T.MEM(T.BINOP(T.PLUS, e, T.CONST c))) = 
+						result(fn r => emit(oper("lw `d0, " ^ iToS c ^ "(`s0)", [r], [munchExp e], NONE)))
+				| munchExp(T.MEM(T.BINOP(T.PLUS, T.CONST c, e))) = 
+						result(fn r => emit(oper("lw `d0, " ^ iToS c ^ "(`s0)", [r], [munchExp e], NONE)))
+				| munchExp(T.MEM(T.BINOP(T.MINUS, e, T.CONST c))) = 
+						result(fn r => emit(oper("lw `d0, " ^ iToS (~c) ^ "(`s0)", [r], [munchExp e], NONE)))
 				| munchExp(T.MEM e) = 
 						result(fn r => emit(oper("lw `d0, 0(`s0)", [r], [munchExp e], NONE)))
 
+
+				| munchExp (T.CALL(T.NAME lab, args)) =
+						result(fn r => emit(oper("jal " ^ (S.name lab), Frame.calldefs, munchArgs(0, args), NONE)))
+
+
 				| munchExp(T.TEMP t) = t
-				| munchExp(exp) = toDoTemp
+				| munchExp(T.ESEQ (stm,exp)) = (munchStm stm; munchExp exp)
+				| munchExp(T.NAME lab) = result(fn r => emit(oper("la 'd0, " ^ S.name lab, [r], [], NONE)))
+				| munchExp(T.CONST c) = result(fn r => emit(oper("li `d0, " ^ iToS c, [r], [], NONE)))
+				| munchExp _ = ErrorMsg.impossible "Could not munch expression"
 
 		in munchStm stm;
 			 rev(!ilist)

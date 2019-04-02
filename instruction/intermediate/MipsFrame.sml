@@ -45,6 +45,7 @@ struct
   val argregs = map (fn (s, r) => r) argregspairs
   val calleesaves = map (fn (s, r) => r) calleesavespairs
   val callersaves = map (fn (s, r) => r) callersavespairs
+  val calldefs = [FP, RV, RA]@callersaves
 	
 
 	val registers = map (fn (s, r) => s) (specialregspairs @ argregspairs @ calleesavespairs @ callersavespairs)
