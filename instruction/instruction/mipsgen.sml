@@ -42,78 +42,87 @@ struct
 			and munchStm (T.SEQ(a, b)) = (munchStm(a); munchStm(b))
 
 				(* MOVES *)
-				(* Between regs *)
-				| munchStm(T.MOVE(T.TEMP t, T.CONST c)) = emit(oper("li `d0, " ^ iToS c, [t], [], NONE))
+				(* loads *)
 
-				| munchStm(T.MOVE(T.TEMP t, T.CALL(T.NAME(lab), args))) = 
-						(emit(oper("jal `j0", [Frame.RV], munchArgs(0, args), SOME [lab]));
-						 emit(move("move `d0, `s0", t, Frame.RV)))
+				| munchStm (T.MOVE(T.TEMP t, T.CONST c)) = emit(oper("li `d0, " ^ iToS c, [t], [], NONE))
 
-				| munchStm(T.MOVE(T.TEMP t, e)) = emit(move("move `d0, `s0", t, munchExp e))
+		        | munchStm (T.MOVE(T.TEMP t, T.MEM(T.BINOP(T.PLUS, e, T.CONST c)))) =
+		            	emit(oper("lw `d0, " ^ iToS c ^ "(`s0)", [t], [munchExp e], NONE})
 
-				| munchStm(T.MOVE(T.MEM(T.TEMP t), T.BINOP(T.PLUS, e1, T.CONST c))) = 
-						emit(oper("sw `s0, " ^ iToS c ^ "(`s1)", [], [munchExp e1, t], NONE))
-				| munchStm(T.MOVE(T.MEM(T.TEMP t), T.BINOP(T.PLUS, T.CONST c, e1))) = 
-						emit(oper("sw `s0, " ^ iToS c ^ "(`s1)", [], [munchExp e1, t], NONE))
-				| munchStm(T.MOVE(T.MEM(T.TEMP t), T.BINOP(T.MINUS, e1, T.CONST c))) = 
-						emit(oper("sw `s0, " ^ iToS (0-c) ^ "(`s1)", [], [munchExp e1, t], NONE))
-				| munchStm(T.MOVE(T.MEM(T.TEMP t), exp)) = 
-						emit(oper("sw `s0, 0(`s1)", [], [munchExp exp, t], NONE))
-				| munchStm(T.MOVE(T.MEM(addrExp), exp)) = 
-						emit(oper("sw `s0, 0(`s1)", [], [munchExp exp, munchExp addrExp], NONE))
+		        | munchStm (T.MOVE(T.TEMP t, T.MEM(T.BINOP(T.PLUS, T.CONST c, e)))) =
+		            	emit(oper("lw `d0, " ^ iToS c ^ "(`s0)", [t], [munchExp e], NONE})
 
-				| munchStm(T.CJUMP(T.LT, T.CONST c1, T.CONST c2, t, f)) = 
-						withTemp(fn r => 
-							(emit(oper("li `d0, " ^ iToS (c1-c2), [r], [], NONE));
-							 emit(oper("bltz `s0, `j0", [], [r], SOME [t]))))
-				| munchStm(T.CJUMP(T.LT, e1, e2, t, f)) = 
-						withTemp(fn r => 
-							(emit(oper("subi `d0, `s0, `s1", [r], [munchExp e1, munchExp e2], NONE));
-							 emit(oper("bltz `s0, `j0", [], [r], SOME [t]))))
+		        | munchStm (T.MOVE(T.TEMP t, T.MEM(T.BINOP(T.MINUS, e, T.CONST c)))) =
+		            	emit(oper("lw `d0, " ^ iToS (~c) ^ "(`s0)", [t], [munchExp e], NONE})
 
-				| munchStm(T.CJUMP(T.LE, T.CONST c1, T.CONST c2, t, f)) = 
-						withTemp(fn r => 
-							(emit(oper("li `d0, " ^ iToS (c1-c2), [r], [], NONE));
-							 emit(oper("blez `s0, `j0", [], [r], SOME [t]))))
-				| munchStm(T.CJUMP(T.LE, e1, e2, t, f)) = 
-						withTemp(fn r => 
-							(emit(oper("subi `d0, `s0, `s1", [r], [munchExp e1, munchExp e2], NONE));
-							 emit(oper("blez `s0, `j0", [], [r], SOME [t]))))
 
-				| munchStm(T.CJUMP(T.GE, T.CONST c1, T.CONST c2, t, f)) = 
-						withTemp(fn r => 
-							(emit(oper("li `d0, " ^ iToS (c1-c2), [r], [], NONE));
-							 emit(oper("bgez `s0, `j0", [], [r], SOME [t]))))
-				| munchStm(T.CJUMP(T.GE, e1, e2, t, f)) = 
-						withTemp(fn r => 
-							(emit(oper("subi `d0, `s0, `s1", [r], [munchExp e1, munchExp e2], NONE));
-							 emit(oper("bgez `s0, `j0", [], [r], SOME [t]))))
+		        (* stores *)
+				
+		        | munchStm (T.MOVE(T.MEM(T.BINOP(T.PLUS, e1, T.CONST c)), e2)) =
+            			emit(oper("sw `s0, " ^ iToS c ^ "(`s1)", [], [munchExp e2, munchExp e1], NONE))
 
-				| munchStm(T.CJUMP(T.GT, T.CONST c1, T.CONST c2, t, f)) = 
-						withTemp(fn r => 
-							(emit(oper("li `d0, " ^ iToS (c1-c2), [r], [], NONE));
-							 emit(oper("bgtz `s0, `j0", [], [r], SOME [t]))))
-				| munchStm(T.CJUMP(T.GT, e1, e2, t, f)) = 
-						withTemp(fn r => 
-							(emit(oper("subi `d0, `s0, `s1", [r], [munchExp e1, munchExp e2], NONE));
-							 emit(oper("bgtz `s0, `j0", [], [r], SOME [t]))))
+	            | munchStm (T.MOVE(T.MEM(T.BINOP(T.PLUS, T.CONST c, e1)), e2)) =
+	            		emit(oper("sw `s0, " ^ iToS c ^ "(`s1)", [], [munchExp e2, munchExp e1], NONE))
 
-				| munchStm(T.CJUMP(T.EQ, T.CONST c1, T.CONST c2, t, f)) = 
-						withTemp(fn r => 
-								if c1 = c2 then emit(oper("j `j0", [], [], SOME [t])) else ())
-				| munchStm(T.CJUMP(T.EQ, e1, e2, t, f)) = 
-						withTemp(fn r => 
-							 emit(oper("beq `s0, `s1, `j0", [], [munchExp e1, munchExp e2], SOME [t])))
+		        | munchStm (T.MOVE(T.MEM(T.BINOP(T.MINUS, e1, T.CONST c)), e2)) =
+		        	    emit(oper("sw `s0, " ^ iToS (~c) ^ "(`s1)", [], [munchExp e2, munchExp e1], NONE))
 
-				| munchStm(T.CJUMP(T.NE, T.CONST c1, T.CONST c2, t, f)) = 
-						withTemp(fn r => 
-								if c1 <> c2 then emit(oper("j `j0", [], [], SOME [t])) else ())
-				| munchStm(T.CJUMP(T.NE, e1, e2, t, f)) = 
-						withTemp(fn r => 
-							 emit(oper("bne `s0, `s1, `j0", [], [munchExp e1, munchExp e2], SOME [t])))
+          		| munchStm (T.MOVE(T.MEM(e1), e2)) =
+			            emit(oper("sw `s0, 0(`s1)", [], [munchExp e2, munchExp e1], NONE))
 
-				| munchStm(T.JUMP(T.NAME(lab), labs)) = emit(oper("j `j0", [], [], SOME(labs)))
+
+			    (* general move *)
+
+			    | munchStm (T.MOVE(T.TEMP t, e)) =
+            			emit(move("move `d0, `s0", t, munchExp e))
+
+
+            	(* procedure call ..? *)					
+
+
+				(* conditionals *)
+				(* comparing 0 *)
+
+				| munchStm (T.CJUMP(T.GE, e, T.CONST 0, t, f)) = emit(oper("bgez `s0, `j0\nb `j1", [], [munchExp e], SOME [t,f]})
+				| munchStm (T.CJUMP(T.GE, T.CONST 0, e, t, f)) = emit(oper("bltz `s0, `j0\nb `j1", [], [munchExp e], SOME [t,f]})
+
+          		| munchStm (T.CJUMP(T.GT, e, T.CONST 0, t, f)) = emit(oper("bgtz `s0, `j0\nb `j1", [], [munchExp e], SOME [t,f]})
+          		| munchStm (T.CJUMP(T.GT, T.CONST 0, e, t, f)) = emit(oper("blez `s0, `j0\nb `j1", [], [munchExp e], SOME [t,f]})
+
+          		| munchStm (T.CJUMP(T.LE, e, T.CONST 0, t, f)) = emit(oper("blez `s0, `j0\nb `j1", [], [munchExp e], SOME [t,f]})
+          		| munchStm (T.CJUMP(T.LE, T.CONST 0, e, t, f)) = emit(oper("bgtz `s0, `j0\nb `j1", [], [munchExp e], SOME [t,f]})
+
+          		| munchStm (T.CJUMP(T.LT, e, T.CONST 0, t, f)) = emit(oper("bltz `s0, `j0\nb `j1", [], [munchExp e], SOME [t,f]})
+          		| munchStm (T.CJUMP(T.LT, T.CONST 0, e, t, f)) = emit(oper("bgez `s0, `j0\nb `j1", [], [munchExp e], SOME [t,f]})
+
+          		| munchStm (T.CJUMP(T.EQ, e, T.CONST 0, t, f)) = emit(oper("beqz `s0, `j0\nb `j1", [], [munchExp e], SOME [t,f]})
+          		| munchStm (T.CJUMP(T.EQ, T.CONST 0, e, t, f)) = emit(oper("beqz `s0, `j0\nb `j1", [], [munchExp e], SOME [t,f]})
+
+          		| munchStm (T.CJUMP(T.NE, e, T.CONST 0, t, f)) = emit(oper("bnez `s0, `j0\nb `j1", [], [munchExp e], SOME [t,f]})
+          		| munchStm (T.CJUMP(T.NE, T.CONST 0, e, t, f)) = emit(oper("bnez `s0, `j0\nb `j1", [], [munchExp e], SOME [t,f]})
+
+
+          		(* general conditional *)
+				
+				| munchStm(T.CJUMP(T.LT, e1, e2, t, f)) = emit(oper("blt `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
+
+				| munchStm(T.CJUMP(T.LE, e1, e2, t, f)) = emit(oper("ble `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
+
+				| munchStm(T.CJUMP(T.GT, e1, e2, t, f)) = emit(oper("bgt `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
+
+				| munchStm(T.CJUMP(T.GE, e1, e2, t, f)) = emit(oper("bge `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
+
+				| munchStm(T.CJUMP(T.EQ, e1, e2, t, f)) = emit(oper("beq `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
+
+				| munchStm(T.CJUMP(T.NE, e1, e2, t, f)) = emit(oper("bne `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
+
+				| munchStm(T.JUMP(T.NAME(lab), labs)) = emit(oper("b `j0", [], [], SOME([lab])))
+
+          		| munchStm (T.JUMP(e, labs)) = emit(oper("jr `s0", [], [munchExp e], SOME labs))
+
 				| munchStm(T.LABEL(lab)) = emit(label(labStr lab ^ ":\n", lab))
+
+				| munchStm (T.EXP e) = (munchExp e; ())
 
 			and	munchExp(T.BINOP(T.PLUS, T.CONST c1, T.CONST c2)) = 
 						result(fn r => emit(oper("li `d0, " ^ iToS (c1+c2), [r], [], NONE)))
