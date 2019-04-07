@@ -104,13 +104,13 @@ struct
 		 epilog = "END " ^ Symbol.name name ^ "\n"}	(* placeholder *)
 
 
-  val tempMap = foldl (fn ((r, t), table) => Temp.Table.enter(table, t, r)) Temp.Table.empty (specialregspairs@argregspairs@calleesavespairs@callersavespairs)
+  val tempMap = foldl (fn ((r, t), table) => Temp.Map.insert(table, t, r)) Temp.Map.empty (specialregspairs@argregspairs@calleesavespairs@callersavespairs)
 
   datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string
 
   fun accessToStr(InFrame(offset)) = "InFrame(" ^ (Int.toString offset) ^ ")"
-    | accessToStr(InReg(t)) = case Temp.Table.look(tempMap,t) of
+    | accessToStr(InReg(t)) = case Temp.Map.find(tempMap,t) of
                                 SOME(r) => r
                               | NONE => Temp.makestring t 
 
