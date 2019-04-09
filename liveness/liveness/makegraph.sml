@@ -50,12 +50,12 @@ struct
 							(g, l::labels)
 						end
 
-			val (procGraph, procLabels) = foldl processInstr G.empty instrs
+			val (procGraph, procLabels) = foldl processInstr (G.empty, []) instrs
 			val instrLabelPairs = ListPair.zip (instrs, List.rev procLabels)
 
 			fun linkNodes ([], graph) = graph
 				| linkNodes ([(i, l)], graph) = graph
-				| linkNodes ([(i1, l1)::(i2, l2)::etc], graph) = 
+				| linkNodes ([(i1, l1)::((i2, l2)::etc)], graph) = 
 						case i1 of
 							Assem.OPER{ jump = SOME labs, ... } => 
 								let
