@@ -66,7 +66,7 @@ struct
 
        			| _ => linkNodes((i2, l2)::etc, G.addEdge(graph, { from = l1, to = l2 }))
 
-      val linkedGraph = foldl linkNodes procGraph instrLabelPairs
+      val linkedGraph = linkNodes (instrLabelPairs, procGraph)
 
       val _ = G.printGraph ( fn (lab, (assem, defs, uses, isMove)) => "Node: " ^ (T.labelString lab) ^ 
       																													   ",\n--assem: " ^ assem ^
