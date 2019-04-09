@@ -5,6 +5,8 @@ type 'a node
 type 'a edge = {from: nodeID, to: nodeID}
 type 'a graph
 
+val cmpID: (nodeID * nodeID) -> ORD_KEY
+
 exception NoSuchNode of nodeID
 exception NoSuchEdge of nodeID * nodeID
 

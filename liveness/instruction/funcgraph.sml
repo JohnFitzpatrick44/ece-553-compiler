@@ -17,6 +17,8 @@ type 'a node = (nodeID * 'a * NodeSet.set * NodeSet.set)
 type 'a graph = 'a node NodeMap.map
 type 'a edge = {from: nodeID, to: nodeID}
 
+fun value(_, v, _, _) = v
+val cmpID  = K.compare
 
 exception NoSuchNode of nodeID
 exception NoSuchEdge of nodeID * nodeID
