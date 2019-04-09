@@ -10,7 +10,7 @@ sig
   val look  : 'a table * symbol -> 'a option
 end
 
-structure Symbol :> SYMBOL =
+structure Symbol : SYMBOL =
 struct
 
   type symbol = string * int
