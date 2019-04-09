@@ -55,7 +55,7 @@ struct
 
 			fun linkNodes ([], graph) = graph
 				| linkNodes ([(i, l)], graph) = graph
-				| linkNodes ([(i1, l1)::((i2, l2)::etc)], graph) = 
+				| linkNodes ((i1, l1)::((i2, l2)::etc), graph) = 
 						case i1 of
 							Assem.OPER{ jump = SOME labs, ... } => 
 								let
