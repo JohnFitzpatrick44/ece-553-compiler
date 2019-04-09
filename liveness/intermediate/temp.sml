@@ -11,7 +11,7 @@ struct
 
 	  type label = Symbol.symbol
 
-    fun labelCompare((_,i1),(_,i2)) = Int.compare(i1,i2)
+    fun labelCompare(s1, s2) = Int.compare(Symbol.id s1, Symbol.id s2)
 
     structure LabelOrd =
     struct 
