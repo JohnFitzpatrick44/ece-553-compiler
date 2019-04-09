@@ -15,7 +15,7 @@ struct
 
     structure LabelOrd =
     struct 
-      type ord_key = symbol
+      type ord_key = Symbol.symbol
       val compare = labelCompare
     end
 
