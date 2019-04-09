@@ -68,14 +68,14 @@ struct
 
       val linkedGraph = linkNodes (instrLabelPairs, procGraph)
 
-      val _ = G.printGraph ( fn (lab, (assem, defs, uses, isMove)) => "Node: " ^ (T.labelString lab) ^ 
-      																													   ",\n--assem: " ^ assem ^
-      																													   ",\n--defs: " ^ 
-      																													   			(foldl ( fn (def, str) => str^" "^(T.makestring def)) "" defs)^
-      																													   ",\n--uses: " ^
-      																													   			(foldl ( fn (use, str) => str^" "^(T.makestring use)) "" uses)^
-      																													   ",\n--move: " ^ (Bool.toString isMove) ^ "\n"
-      																													   			) linkedGraph
+      val _ = G.printGraph ( fn (lab, (assem, defs, uses, isMove)) => 
+																							"Node: " ^ (T.labelString lab) ^ "\n" ^ 
+      																				"--assem: " ^ assem ^ 
+      																				"--defs: " ^ (foldl ( fn (def, str) => str^" "^(T.makestring def)) "" defs) ^ "\n" ^
+      																				"--uses: " ^ (foldl ( fn (use, str) => str^" "^(T.makestring use)) "" uses) ^ "\n" ^
+      																				"--move: " ^ (Bool.toString isMove) ^ "\n") 
+													 T.labelString
+													 linkedGraph
 
 
 		in 

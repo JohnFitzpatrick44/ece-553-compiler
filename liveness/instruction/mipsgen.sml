@@ -12,7 +12,7 @@ struct
 		else Int.toString i
 
 	fun oper(assem, dst, src, jump) = A.OPER{assem=assem ^ "\n", dst=dst, src=src, jump=jump}
-	fun label(assem, lab) = A.LABEL{assem=assem ^ "\n", lab=lab}
+	fun label(assem, lab) = A.LABEL{assem=assem, lab=lab}
 	fun move(assem, dst, src) = A.MOVE{assem=assem ^ "\n", dst=dst, src=src}
 
 	fun codegen frame stm = 
@@ -123,7 +123,7 @@ struct
 
 				| munchStm(T.CJUMP(T.NE, e1, e2, t, f)) = emit(oper("bne `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
 
-				| munchStm(T.JUMP(T.NAME(lab), labs)) = emit(oper("b `j0", [], [], SOME([lab])))
+				| munchStm(T.JUMP(T.NAME(lab), labs)) = emit(oper("j `j0", [], [], SOME([lab])))
 
           		| munchStm (T.JUMP(e, labs)) = emit(oper("jr `s0", [], [munchExp e], SOME labs))
 

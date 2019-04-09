@@ -35,6 +35,7 @@ instruction/funcgraph.sig
 liveness/flowgraph.sml
 liveness/makegraph.sig
 liveness/makegraph.sml
+liveness/liveness.sml
 
 $/smlnj-lib.cm
 $/ml-yacc-lib.cm

@@ -5,7 +5,7 @@ type 'a node
 type 'a edge = {from: nodeID, to: nodeID}
 type 'a graph
 
-val cmpID: (nodeID * nodeID) -> ORD_KEY
+val cmpID: (nodeID * nodeID) -> order
 
 exception NoSuchNode of nodeID
 exception NoSuchEdge of nodeID * nodeID
@@ -107,6 +107,6 @@ val isAdjacent: 'a node * 'a node -> bool
  * that says how to convert any given node's data into a
  * string, and it will print everything out 
  *)
-val printGraph:  ((nodeID * 'a) -> string) -> 'a graph  -> unit
+val printGraph:  ((nodeID * 'a) -> string) -> (nodeID -> string) -> 'a graph  -> unit
 
 end

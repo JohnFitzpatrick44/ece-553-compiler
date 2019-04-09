@@ -1,5 +1,5 @@
 let
-	function g(a: int, b: int): int = (print("hi") ; i )
+	var x:= 1
 in
-	g(1, 2)
+	for i := 1 to 4 do x := x + i
 end

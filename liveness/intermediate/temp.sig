@@ -12,5 +12,6 @@ sig
 	structure Set : ORD_SET sharing type Set.Key.ord_key = temp
   structure Map : ORD_MAP sharing type Map.Key.ord_key = temp
   structure LabelOrd : ORD_KEY
+	structure TempOrd : ORD_KEY
 end
 

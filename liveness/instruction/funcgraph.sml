@@ -1,4 +1,4 @@
-functor FuncGraph(K:ORD_KEY) : FUNCGRAPH =
+functor FuncGraph(K:ORD_KEY) :> FUNCGRAPH where type nodeID = K.ord_key=
 struct
 structure Key = K
 type nodeID = Key.ord_key
@@ -17,7 +17,6 @@ type 'a node = (nodeID * 'a * NodeSet.set * NodeSet.set)
 type 'a graph = 'a node NodeMap.map
 type 'a edge = {from: nodeID, to: nodeID}
 
-fun value(_, v, _, _) = v
 val cmpID  = K.compare
 
 exception NoSuchNode of nodeID
@@ -115,24 +114,40 @@ fun isAdjacent ((n1,_,s1,p1),(n2,_,s2,p2)) =
   NodeSet.member(NodeSet.union(s1,p1),n2) orelse
   NodeSet.member(NodeSet.union(s2,p2),n1)
 
-fun printGraph stringify g = 
-    let fun println x = print(x ^"\n")
-	fun stringNid nid = 
-	    let val (_,data,_,_) = getNode(g,nid)
-	    in
-		"   "^ stringify(nid,data)
-	    end
-	fun prSet s = NodeSet.app (println o stringNid) s
-	fun prOneNode(nid,data,succs,preds) = 
-	    let val s = stringify(nid,data)
-		val () = println("Node: " ^ s)
-		val () = println(" -> Successors:")
-		val () = prSet succs
-		val () = println(" -> Predecessors:")
-		val () = prSet preds
-	    in
-		()
-	    end
+fun indentStr 0 = ""
+  | indentStr level = "    " ^ indentStr (level-1)
+
+fun println x = print(x ^"\n")
+
+fun indent n str = 
+	let 
+		val space = indentStr n
+		val lines = String.tokens (fn ch => ch = #"\n") str
+	in
+		space ^ (String.concatWith ("\n" ^ space) lines)
+	end
+
+fun printGraph stringify idStr g = 
+    let 
+	    fun stringNid nid = 
+	      let val (_,data,_,_) = getNode(g,nid)
+	      in indent 1 (stringify(nid,data))
+	      end
+	    fun prSet s = print (String.concatWith ", " (map idStr (NodeSet.listItems s)))
+	    fun prOneNode(nid,data,succs,preds) = 
+	      let 
+					val () = println("---------- node ---------")
+					val s = stringify(nid,data)
+	    	  val () = println("Node: " ^ s)
+	    	  val () = print("Successors: ")
+	    	  val () = prSet succs
+					val () = println ""
+	    	  val () = print("Predecessors: ")
+	    	  val () = prSet preds
+					val () = println ""
+	    	in
+					()
+	    	end
     in
 	NodeMap.app prOneNode g
     end

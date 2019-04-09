@@ -5,9 +5,15 @@ struct
 				    use: Temp.temp list Graph.Table.table,
 				    ismove: bool Graph.Table.table}*)
 
-  structure Graph = FuncGraph(Temp.LabelOrd)
+	structure NodeOrd = Temp.LabelOrd
+  structure Graph = FuncGraph(NodeOrd)
 
   type flowgraph = (string * Temp.temp list * Temp.temp list * bool) Graph.graph
+
+	fun instr(n) = let val (instr, _, _, _) = Graph.nodeInfo n in instr end
+	fun defs(n) = let val (_, defs, _, _) = Graph.nodeInfo n in defs end
+	fun uses(n) = let val (_, _, uses, _) = Graph.nodeInfo n in uses end
+	fun ismove(n) = let val (_, _, _, ismove) = Graph.nodeInfo n in ismove end
 
   (* Note:  any "use" within the block is assumed to be BEFORE a "def" 
         of the same variable.  If there is a def(x) followed by use(x)

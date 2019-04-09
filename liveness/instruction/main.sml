@@ -16,18 +16,21 @@ fun emitproc out (F.PROC{body,frame}) =
     val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
 		val _ = print "-------------Linearized------------\n"
 		val _ = app (fn s => Printtree.printtree(out,s)) stms'
-		val _ = print "-------------Result----------\n"
+		val _ = print "-------------Flow Graph------------\n"
 	  val instrs = List.concat(map (MipsGen.codegen frame) stms') 
 
-
-    val _ = MakeGraph.instrs2graph instrs
-
+    val flowgraph = MakeGraph.instrs2graph instrs
+		val igraph = Liveness.interferenceGraph flowgraph
+		val _ = print "--------Interference Graph------------\n"
+		val () = Liveness.printGraph igraph
     
 		val instrs' = F.procEntryExit2(frame, instrs)
 		val {body=instrs'', prolog=prolog, epilog=epilog} = F.procEntryExit3(frame, instrs')
 
     val format0 = Assem.format(Temp.makestring) 
 	  (* Temp.makestring for now, we'll change it later on registor alloc *)
+
+		val _ = print "-------------Instructions------------\n"
   in 
 		TextIO.output(out, prolog);
 		app (fn i => TextIO.output(out,format0 i)) instrs'';
