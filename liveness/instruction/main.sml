@@ -18,6 +18,11 @@ fun emitproc out (F.PROC{body,frame}) =
 		val _ = app (fn s => Printtree.printtree(out,s)) stms'
 		val _ = print "-------------Result----------\n"
 	  val instrs = List.concat(map (MipsGen.codegen frame) stms') 
+
+
+    val _ = MakeGraph.instrs2graph instrs
+
+    
 		val instrs' = F.procEntryExit2(frame, instrs)
 		val {body=instrs'', prolog=prolog, epilog=epilog} = F.procEntryExit3(frame, instrs')
 

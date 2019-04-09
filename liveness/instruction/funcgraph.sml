@@ -1,4 +1,4 @@
-functor FuncGraph(K:ORD_KEY) :> FUNCGRAPH where type nodeID = K.ord_key=
+functor FuncGraph(K:ORD_KEY) : FUNCGRAPH =
 struct
 structure Key = K
 type nodeID = Key.ord_key
