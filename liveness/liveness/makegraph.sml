@@ -27,7 +27,7 @@ struct
          Node info: assem, def, use, isMove
          Labels at end are reverse order 
 			*)
-			fun processInstr (A.OPER {assem=assem, dst=dst, src=src, jump=jump}, (graph, labels))
+			fun processInstr (A.OPER {assem=assem, dst=dst, src=src, jump=jump}, (graph, labels)) =
 						let 
 							val l = T.newlabel()
 							val g = G.addNode(graph, l, (assem, dst, src, false))
@@ -35,14 +35,14 @@ struct
 							(g, l::labels)
 						end
 
-				| processInstr (A.LABEL {assem=assem, lab=lab}, (graph, labels))
+				| processInstr (A.LABEL {assem=assem, lab=lab}, (graph, labels)) =
 						let 
 							val g = G.addNode(graph, lab, (assem, [], [], false))
 						in
 							(g, lab::labels)
 						end
 
-				| processInstr (A.MOVE {assem=assem, dst=dst, src=src}, (graph, labels))
+				| processInstr (A.MOVE {assem=assem, dst=dst, src=src}, (graph, labels)) =
 						let
 							val l = T.newlabel()
 							val g = G.addNode(graph, l, (assem, [dst], [src], true))
@@ -59,21 +59,21 @@ struct
 						case i1 of
 							Assem.OPER{ jump = SOME labs, ... } => 
 								let
-									fun makeEdge (lab, g) = G.addEdge(g, { from: l1, to: lab }) 
+									fun makeEdge (lab, g) = G.addEdge(g, { from = l1, to = lab }) 
 								in
 									linkNodes((i2, l2)::etc, foldl makeEdge graph labs)
 								end
 
-       			| _ => linkNodes((i2, l2)::etc, G.addEdge(graph, { from: l1, to: l2 }))
+       			| _ => linkNodes((i2, l2)::etc, G.addEdge(graph, { from = l1, to = l2 }))
 
       val linkedGraph = foldl linkNodes procGraph instrLabelPairs
 
-      val _ = G.printGraph ( (lab, (assem, defs, uses, isMove)) => "Node: " ^ (T.labelString lab) ^ 
+      val _ = G.printGraph ( fn (lab, (assem, defs, uses, isMove)) => "Node: " ^ (T.labelString lab) ^ 
       																													   ",\n--assem: " ^ assem ^
       																													   ",\n--defs: " ^ 
-      																													   			(foldl ((def, str) => str^" "^(T.makestring def)) "" defs)^
+      																													   			(foldl ( fn (def, str) => str^" "^(T.makestring def)) "" defs)^
       																													   ",\n--uses: " ^
-      																													   			(foldl ((use, str) => str^" "^(T.makestring use)) "" uses)^
+      																													   			(foldl ( fn (use, str) => str^" "^(T.makestring use)) "" uses)^
       																													   ",\n--move: " ^ (Bool.toString isMove) ^ "\n"
       																													   			) linkedGraph
 
