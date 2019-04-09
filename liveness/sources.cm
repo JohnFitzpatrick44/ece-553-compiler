@@ -1,4 +1,4 @@
-Group is 
+Group is
 
 parser/absyn.sml
 parser/prabsyn.sml
@@ -32,8 +32,10 @@ instruction/codegen.sig
 instruction/mipsgen.sml
 instruction/funcgraph.sml
 instruction/funcgraph.sig
+liveness/flowgraph.sml
+liveness/makegraph.sig
+liveness/makegraph.sml
 
 $/smlnj-lib.cm
 $/ml-yacc-lib.cm
 $/basis.cm
-
