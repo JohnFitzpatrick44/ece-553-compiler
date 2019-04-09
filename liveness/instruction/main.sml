@@ -28,8 +28,8 @@ fun emitproc out (F.PROC{body,frame}) =
 
 		val _ = print "-------------Flow Graph------------\n"
     val flowgraph = MakeGraph.instrs2graph instrs
-		val igraph = Liveness.interferenceGraph flowgraph
 		val _ = print "---------Interference Graph------------\n"
+		val (igraph, _) = Liveness.interferenceGraph flowgraph
 		val _ = Liveness.printGraph igraph
   in 
 		()

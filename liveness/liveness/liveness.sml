@@ -81,13 +81,26 @@ fun interferenceGraph(flowgraph) =
 				val processed = if Flow.ismove n 
 												then List.filter (fn p => List.exists (fn r => p = r) toRemove) interfs
 												else interfs
+				(* also, if move, add it to moves *)
+				val newMoves = if Flow.ismove n
+											 then EdgeSet.addList(s, toRemove)
+											 else s
 
 				val newGraph = foldl (fn ((t1, t2), g) => Graph.doubleEdge(g, t1, t2)) g processed
 			in 
-				IGRAPH{graph=newGraph, moves=s}
+				IGRAPH{graph=newGraph, moves=newMoves}
 			end
+
+		val emptyIGraph = IGRAPH{graph=unconnected, moves=EdgeSet.empty}
+		val finalIgraph = FGraph.foldNodes addEdges emptyIGraph flowgraph
+
+		fun liveOuts n = 
+			case LMap.find(liveinfo, nodeID n) of
+				SOME(_, liveout) => liveout
+			| NONE => ErrorMsg.impossible "InterferenceGraph(): Invalid flow node given"
+
 	in
-		FGraph.foldNodes addEdges (IGRAPH{graph=unconnected, moves=EdgeSet.empty}) flowgraph
+		(finalIgraph, liveOuts)
 	end
 
 fun formatNode (nid, ()) = Temp.makestring nid
