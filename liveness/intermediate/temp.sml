@@ -11,6 +11,14 @@ struct
 
 	  type label = Symbol.symbol
 
+    fun labelCompare((_,i1),(_,i2)) = Int.compare(i1,i2)
+
+    structure LabelOrd =
+    struct 
+      type ord_key = symbol
+      val compare = labelCompare
+    end
+
 		structure TempOrd =
     struct
       type ord_key = temp
