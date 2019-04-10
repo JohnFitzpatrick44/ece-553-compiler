@@ -79,9 +79,9 @@ fun interferenceGraph(flowgraph) =
 				(* but if the instruction is a move, remove the (def, use) interferences *)
 				val toRemove = cartesian (Flow.defs n) (Flow.uses n) (* (temp * temp) list *)
 				val processed = if Flow.ismove n 
-												then List.filter (fn p => List.exists (fn r => p = r) toRemove) interfs
+												then List.filter (fn p => List.exists (fn r => p <> r) toRemove) interfs
 												else interfs
-				(* also, if move, add it to moves *)
+				(* and add it to moves *)
 				val newMoves = if Flow.ismove n
 											 then EdgeSet.addList(s, toRemove)
 											 else s
