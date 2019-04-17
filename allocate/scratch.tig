@@ -1,0 +1,5 @@
+let
+	var x:= 1
+in
+	for i := 1 to 4 do x := x + i
+end
