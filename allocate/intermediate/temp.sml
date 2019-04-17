@@ -27,6 +27,8 @@ struct
 
     structure Set = SplaySetFn(TempOrd)
     structure Map = SplayMapFn(TempOrd)
+    structure Table = IntMapTable(type key = int
+                                  fun getInt n = n)
 
 		local structure F = Format
       fun postinc x = let val i = !x in x := i+1; i end

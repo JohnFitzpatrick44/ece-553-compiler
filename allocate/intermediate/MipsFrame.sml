@@ -1,4 +1,4 @@
-structure MipsFrame :> FRAME = 
+structure MipsFrame : FRAME = 
 struct
 	(* register list *) 
 	type register = string
@@ -47,6 +47,12 @@ struct
   val callersaves = map (fn (s, r) => r) callersavespairs
   val calldefs = [FP, RV, RA]@callersaves
 	
+  val tempMap = 
+    let
+      fun add ((s, r), t) = Temp.Table.enter (t, r, s) 
+    in
+      foldl add Temp.Table.empty (specialregspairs@argregspairs@calleesavespairs@callersavespairs)
+    end
 
 	val registers = map (fn (s, r) => s) (specialregspairs @ argregspairs @ calleesavespairs @ callersavespairs)
 
