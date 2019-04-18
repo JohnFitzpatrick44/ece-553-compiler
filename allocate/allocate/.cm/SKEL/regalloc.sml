@@ -1,2 +1,2 @@
 Skeleton 5
-d2f7d"Int"d"List"Cd"Temp"d"MakeGraph"d"Liveness"d"Color"d"ErrorMsg"Nad"RegAlloc"jh1ad"Frame"gp1d"MipsFrame"gp1c"REGALLOC"
+d2f8d"Int"d"List"d"Temp"Cd"MakeGraph"‰¢Liveness"d"Assem"d"Color"d"ErrorMsg"Nad"RegAlloc"jh2ad"Frame"gp1d"MipsFrame"a‰¢Graph"gp2ˇ%ˇÅ4gp1c"REGALLOC"
