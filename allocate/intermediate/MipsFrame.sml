@@ -49,9 +49,9 @@ struct
 	
   val tempMap = 
     let
-      fun add ((s, r), t) = Temp.Table.enter (t, r, s) 
+      fun add ((s, r), t) = Temp.Map.insert (t, r, s) 
     in
-      foldl add Temp.Table.empty (specialregspairs@argregspairs@calleesavespairs@callersavespairs)
+      foldl add Temp.Map.empty (specialregspairs@argregspairs) (* The registers that we shouldn't allocate when coloring *)
     end
 
 	val registers = map (fn (s, r) => s) (specialregspairs @ argregspairs @ calleesavespairs @ callersavespairs)

@@ -5,7 +5,7 @@ sig
 	type register = string
 
 	val registers: register list
-  val tempMap: register Temp.Table.table
+  val tempMap: register Temp.Map.map
 
   val newFrame : {name: Temp.label, formals: bool list} -> frame
   val name : frame -> Temp.label

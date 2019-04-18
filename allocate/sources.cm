@@ -36,6 +36,10 @@ liveness/flowgraph.sml
 liveness/makegraph.sig
 liveness/makegraph.sml
 liveness/liveness.sml
+allocate/color.sig
+allocate/color.sml
+allocate/regalloc.sig
+allocate/regalloc.sml
 
 $/smlnj-lib.cm
 $/ml-yacc-lib.cm
