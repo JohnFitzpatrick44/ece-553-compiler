@@ -9,9 +9,7 @@ struct
 	(* val alloc : Assem.instr list * Frame.frame -> Assem.instr list * allocation *)
 	fun alloc (instrs, frame) = 
 		let
-			(* liveouts: Flow.Graph.node -> Temp.temp list // To be honest, I don't know where I should use this, but the book said so lol *)
 			val (igraph, liveouts) = Liveness.interferenceGraph(MakeGraph.instrs2graph instrs)
-
 
 			fun count(elm, x :: rst) = if elm = x then 1 + count(elm, rst) else count(elm, rst)
 				| count(elm, nil) = 0
@@ -38,10 +36,13 @@ struct
 					                                   initial = Frame.tempMap,
 					                                   spillCost = spillCost o getNode,
                                              registers = Frame.registers})
+
+			fun rebuildFromSpill(instrs, spills) = ErrorMsg.impossible ((Int.toString (List.length spills)) ^ " spills occurred.")
+
 		in
 			if List.length spills = 0
 			then (instrs, allocated)
-			else ErrorMsg.impossible ((Int.toString (List.length spills)) ^ " spills occurred.")
+			else alloc(rebuildFromSpill(instrs, spills), frame)
 		end
 
 end

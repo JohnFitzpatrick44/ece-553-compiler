@@ -26,6 +26,19 @@ fun cartesian lst1 lst2 = flatmap (fn e => map (fn e2 => (e, e2)) lst2) lst1
 fun nodeID node = FGraph.getNodeID node
 fun fromList lst = LSet.addList(LSet.empty, lst)
 
+fun formatNode (nid, ()) = Temp.makestring nid
+fun printGraph(IGRAPH{graph, moves}) = Graph.printGraph formatNode Temp.makestring graph
+fun printNeighbors(IGRAPH{graph, moves}, t) = 
+	let
+		val _ = print ("------" ^ Temp.makestring t ^ "'s Neighbors-----\n")
+		val _ = print (String.concatWith ", " (map Temp.makestring (Graph.adj (Graph.getNode(graph, t)))))
+		val _ = print "\n"
+	in
+		()
+	end
+
+
+
 (* Flow.flowgraph -> igraph * (Flow.Graph.node -> Temp.temp list) <--- Didn't include yet; Why do we even need this? *)
 fun interferenceGraph(flowgraph) =
 	let 
@@ -104,12 +117,10 @@ fun interferenceGraph(flowgraph) =
 																									"Live In:  " ^ (setStr s1) ^ "\n" ^
 																									"Live Out: " ^ (setStr s2) ^ "\n" ^ str) 
 												"" liveinfo
-		val _ = print q
+		(* val _ = print q *)
+		(* val _ = printGraph(finalIgraph) *)
 	in
 		(finalIgraph, liveOuts)
 	end
-
-fun formatNode (nid, ()) = Temp.makestring nid
-fun printGraph(IGRAPH{graph, moves}) = Graph.printGraph formatNode Temp.makestring graph
 
 end

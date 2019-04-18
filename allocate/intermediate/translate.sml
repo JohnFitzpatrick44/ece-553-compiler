@@ -234,7 +234,7 @@ fun seqExp [] = Ex(T.CONST 0)
   | seqExp (exp::exps) = Ex(T.ESEQ (unNx exp, unEx (seqExp exps)))
 
 fun letExp ([], body) = body
-  | letExp (decs, body) = Ex(T.ESEQ (seq (map unNx decs), unEx body))
+  | letExp (decs, body) = Ex(T.ESEQ (seq (rev (map unNx decs)), unEx body))
 
 fun whileExp(test, body, exit) =
   let
@@ -302,8 +302,6 @@ fun arrayExp(sizeExp, initExp) =
       ],
       T.BINOP(T.PLUS, T.TEMP r, T.CONST Frame.wordSize))) (* give pointer to a[1] instead of a[0]*)
   end
-
-
 
 fun callExp (label, useLevel, defLevel, args) = 
   case defLevel of 

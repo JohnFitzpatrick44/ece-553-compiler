@@ -217,7 +217,7 @@ struct
 
 				| munchExp(T.TEMP t) = t
 				| munchExp(T.ESEQ (stm,exp)) = (munchStm stm; munchExp exp)
-				| munchExp(T.NAME lab) = result(fn r => emit(oper("la 'd0, " ^ Symbol.name lab, [r], [], NONE)))
+				| munchExp(T.NAME lab) = result(fn r => emit(oper("la `d0, " ^ Symbol.name lab, [r], [], NONE)))
 				| munchExp(T.CONST c) = result(fn r => emit(oper("li `d0, " ^ iToS c, [r], [], NONE)))
 				| munchExp _ = ErrorMsg.impossible "Could not munch expression"
 

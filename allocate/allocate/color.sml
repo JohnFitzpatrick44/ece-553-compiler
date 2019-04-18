@@ -23,12 +23,22 @@ struct
                 | Unfreeze of {remaining: L.igraph}
                 | Spill of {remaining: L.igraph, spilled: Temp.temp, neighbors: Temp.temp list}
 
+  fun todo2str(Simplify{remaining, removed, neighbors}) = 
+    "[Simplify] removed: " ^ Temp.makestring removed ^ " neighbors: " ^ (String.concatWith ", " (map Temp.makestring neighbors))
+    | todo2str(Coalesce{remaining, removed, union}) = 
+    "[Coalesce] merged " ^ Temp.makestring removed ^ " into " ^ Temp.makestring union
+    | todo2str(Unfreeze{remaining}) = 
+    "[Unfreeze]"
+    | todo2str(Spill{remaining, spilled, neighbors}) = 
+    "[Simplify] spilled: " ^ Temp.makestring spilled ^ " neighbors: " ^ (String.concatWith ", " (map Temp.makestring neighbors))
 
 	val inf = 10000000
 
   fun doIfNone(opt: 'a option, f: unit -> 'a option): 'a option = if isSome opt then opt else f()
   fun headOption(x :: lst) = SOME(x)
     | headOption(nil) = NONE
+
+  fun safeDelete(s, toRemove) = if RegisterSet.member(s, toRemove) then RegisterSet.delete(s, toRemove) else s
 
 	fun color({interference: L.igraph,
 							initial: allocation,
@@ -42,17 +52,15 @@ struct
         let 
 			    val L.IGRAPH{graph=igraph, moves=moves} = interference
 
-          fun isInitial(v: Temp.temp): bool = 
-			    	case Temp.Map.find(initial, v) of
-			    		SOME(r) => true
-			      | NONE => false
-
+          fun isInitial(v: Temp.temp): bool = isSome (Temp.Map.find(initial, v))
           fun degree(t: Temp.temp): int = length(Graph.adj (Graph.getNode(igraph, t)))
 
           fun simplify(L.IGRAPH{graph=igraph, moves=moves}): todo option = 
             let
               val moveRelated = L.EdgeSet.foldl (fn ((t1, t2), acc) => Temp.Set.add(Temp.Set.add (acc, t1), t2)) Temp.Set.empty moves
-              fun simplifiable(n) = (degree (Graph.getNodeID n)) < K andalso not (Temp.Set.member(moveRelated, Graph.getNodeID n))
+              fun simplifiable(n) = not (isInitial (Graph.getNodeID n)) andalso 
+                                    degree (Graph.getNodeID n) < K andalso 
+                                    not (Temp.Set.member(moveRelated, Graph.getNodeID n))
               val target = List.find simplifiable (Graph.nodes igraph)
               fun makeSimplify(n) = Simplify{remaining = L.IGRAPH{graph=Graph.remove(igraph, n), moves = moves}, 
                                              removed = Graph.getNodeID n,
@@ -115,13 +123,17 @@ struct
           | NONE => []
         end
       
-      val todoStack = todoList interference
+      val todoStack = rev (todoList interference)
+
+      (* prints out the stack *)
+      (* fun println s = print (s ^ "\n")
+      val () = app (println o todo2str) todoStack *)
 
       fun freeReg(neighbors, alloc): Frame.register option = 
         let
           fun removeUsed(neighbor, remaining) =
             case Temp.Map.find(alloc, neighbor) of 
-              SOME(reg) => RegisterSet.delete(remaining, reg) 
+              SOME(reg) => safeDelete(remaining, reg) 
             | NONE => ErrorMsg.impossible "All neighbors should've been allocated before this"
 
           val remaining = foldl removeUsed registerSet neighbors
@@ -130,28 +142,25 @@ struct
         end
 
       fun allocate(stack, alloc, spills): allocation * Temp.temp list = 
-        let 
-        in
-          case stack of
-            Simplify{remaining, removed, neighbors}::rst => 
-              (case freeReg(neighbors, alloc) of
-                 SOME(reg) => allocate(rst, Temp.Map.insert(alloc, removed, reg), spills)
-               | NONE => ErrorMsg.impossible "There should be some registers left")
+        case stack of
+          Simplify{remaining, removed, neighbors}::rst => 
+            (case freeReg(neighbors, alloc) of
+               SOME(reg) => allocate(rst, Temp.Map.insert(alloc, removed, reg), spills)
+             | NONE => ErrorMsg.impossible "There should be some registers left")
 
-          | Coalesce{remaining, removed, union}::rst => 
-              (case Temp.Map.find(alloc, union) of
-                 SOME(reg) => allocate(rst, Temp.Map.insert(alloc, removed, reg), spills)
-               | NONE => ErrorMsg.impossible "The merged temp should've been allocated before this")
+        | Coalesce{remaining, removed, union}::rst => 
+            (case Temp.Map.find(alloc, union) of
+               SOME(reg) => allocate(rst, Temp.Map.insert(alloc, removed, reg), spills)
+             | NONE => ErrorMsg.impossible "The merged temp should've been allocated before this")
 
-          | Unfreeze{remaining}::rst => allocate(rst, alloc, spills)
+        | Unfreeze{remaining}::rst => allocate(rst, alloc, spills)
 
-          | Spill{remaining, spilled, neighbors}::rst => 
-              (case freeReg(neighbors, alloc) of
-                 SOME(reg) => allocate(rst, Temp.Map.insert(alloc, spilled, reg), spills) (* yay *)
-               | NONE => allocate(rst, alloc, spilled :: spills))
+        | Spill{remaining, spilled, neighbors}::rst => 
+            (case freeReg(neighbors, alloc) of
+               SOME(reg) => allocate(rst, Temp.Map.insert(alloc, spilled, reg), spills) (* yay *)
+             | NONE => allocate(rst, alloc, spilled :: spills))
 
-          | nil => (alloc, spills)
-        end
+        | nil => (alloc, spills)
 		in 
 			allocate(todoStack, initial, [])
 		end

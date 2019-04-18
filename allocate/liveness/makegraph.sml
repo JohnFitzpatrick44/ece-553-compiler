@@ -68,6 +68,8 @@ struct
 
       val linkedGraph = linkNodes (instrLabelPairs, procGraph)
 
+			(*
+			val _ = print "-------------Flow Graph------------\n"
       val _ = G.printGraph ( fn (lab, (assem, defs, uses, isMove)) => 
 																							"Node: " ^ (T.labelString lab) ^ "\n" ^ 
       																				"--assem: " ^ assem ^ 
@@ -76,6 +78,7 @@ struct
       																				"--move: " ^ (Bool.toString isMove) ^ "\n") 
 													 T.labelString
 													 linkedGraph
+      *)
 
 
 		in 

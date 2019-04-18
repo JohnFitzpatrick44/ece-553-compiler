@@ -7,6 +7,7 @@ sig
 	val registers: register list
   val tempMap: register Temp.Map.map
 
+
   val newFrame : {name: Temp.label, formals: bool list} -> frame
   val name : frame -> Temp.label
   val formals : frame -> access list
@@ -21,6 +22,7 @@ sig
 
   val wordSize : int
 
+  val ZERO: Temp.temp
   val FP : Temp.temp
   val RV : Temp.temp
 

@@ -1,5 +1,6 @@
 let
-	var x:= 1
+	var x:= 10
+	var z:= 0
 in
-	for i := 1 to 4 do x := x + i
+	(for i := 1 to x do z := z + i ; z+x)
 end

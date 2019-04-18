@@ -99,7 +99,7 @@ struct
   fun procEntryExit1 (frame, stm) = stm (* view shift - to be implemented in a later phase *)
 
 	fun procEntryExit2 (frame, body) = 
-		body @ [Assem.OPER{assem="", 
+		body @ [Assem.OPER{assem="Invisible Instr\n", 
 										 	 src=[ZERO, RA, SP, FP, RV] @ (map (fn (s, r) => r) calleesavespairs), 
 											 dst=[], 
 											 jump=SOME []}] (* no idea why it's SOME[] in the book *)

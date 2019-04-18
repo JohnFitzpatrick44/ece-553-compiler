@@ -264,7 +264,7 @@ struct
         Log.flatMap(Log.all (map (fn (exp, pos) => trExp exp) exps), fn expTyLst =>
         Log.flatMap(Log.success(map (fn {exp=e,ty=t} => t) expTyLst), fn tyLst =>
         Log.map(Log.success(map (fn {exp=e,ty=t} => e) expTyLst), fn expLst =>
-          {exp=Tr.seqExp expLst, ty=getLastOr (rev tyLst) Types.UNIT})))
+          {exp=Tr.seqExp (rev expLst), ty=getLastOr (rev tyLst) Types.UNIT})))
 
       and checkMatchTwoInt(oper, left, right, pos) = 
         Log.flatMap(trExp left, fn ({exp=leftExp, ty=leftTy}) =>
