@@ -93,13 +93,19 @@ struct
   fun exp (InReg t) exp = Tree.TEMP(t)
     | exp (InFrame offset) exp = Tree.MEM(Tree.BINOP(Tree.PLUS, exp, Tree.CONST(offset)))
 
+
+  fun intToString i = if i < 0 then "-"^(Int.toString (0-i)) else Int.toString i
+
+  fun fetchInstr(InFrame offset) = "lw `d0, " ^ (intToString offset) ^ "($fp)\n"
+  fun storeInstr(InFrame offset) = "sw `s0, " ^ (intToString offset) ^ "($fp)\n"
+
   fun externalCall (s,args) = Tree.CALL(Tree.NAME(Temp.namedlabel s), args)
   
 
   fun procEntryExit1 (frame, stm) = stm (* view shift - to be implemented in a later phase *)
 
 	fun procEntryExit2 (frame, body) = 
-		body @ [Assem.OPER{assem="Invisible Instr\n", 
+		body @ [Assem.OPER{assem="", 
 										 	 src=[ZERO, RA, SP, FP, RV] @ (map (fn (s, r) => r) calleesavespairs), 
 											 dst=[], 
 											 jump=SOME []}] (* no idea why it's SOME[] in the book *)

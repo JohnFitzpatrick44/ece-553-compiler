@@ -435,14 +435,15 @@ struct
 
       and assignExp(var, exp, pos) =
         let 
-          val checkLoopvar = case var of
+          val checkLoopvar = case var of 
                                A.SimpleVar(sym, _) => 
                                  (case S.look(venv, sym) of
                                    SOME(E.VarEntry{access=_, ty=_, isLoopVar=isLoopVar}) => 
                                      if isLoopVar
                                      then Log.failure((), pos, "Loop variable " ^ (S.name sym) ^ " reassigned")
-                                     else Log.success())
-                                 | _ => Log.success()
+                                     else Log.success()
+                                 | NONE => Log.failure((), pos, "Undefined variable " ^ (S.name sym)))
+                             | _ => Log.success()
         in
             Log.flatMap(checkLoopvar, fn () => 
             Log.flatMap(transVar (lvl, venv, tenv, var, loops), fn {exp=varexp,ty=varty} => 

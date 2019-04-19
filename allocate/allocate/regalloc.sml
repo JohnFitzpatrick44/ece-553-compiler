@@ -37,8 +37,58 @@ struct
 					                                   spillCost = spillCost o getNode,
                                              registers = Frame.registers})
 
-			fun rebuildFromSpill(instrs, spills) = ErrorMsg.impossible ((Int.toString (List.length spills)) ^ " spills occurred.")
+			fun rebuildFromSpill(instrs, spills) = 
+				let 
+					fun augmentInstr(spill, instrs) = 
+						let
+							val access = Frame.allocLocal frame true (* true so that we get InFrame *)
 
+							fun genFetch t = Assem.OPER{assem = Frame.fetchInstr access, dst=[t], src=[], jump=NONE}
+							fun genStore t = Assem.OPER{assem = Frame.storeInstr access, dst=[], src=[t], jump=NONE}
+
+							fun replace(t, x::rst) = if x = spill then t :: rst else x :: replace(t, rst)
+								| replace(t, []) = []
+							fun hasSpill(x::rst) = x = spill orelse hasSpill rst
+								| hasSpill([]) = false
+
+							fun addInstrs(instr, acc) = 
+								case instr of
+									Assem.OPER{assem, dst, src, jump} => 
+										(case (hasSpill dst, hasSpill src) of
+											(true, true) => 
+										    let 
+													val t = Temp.newtemp()
+													val d = Temp.newtemp()
+										    in (genFetch t) :: Assem.OPER{assem=assem, dst=replace(d, dst), src=replace(t, src), jump=jump} :: (genStore d) :: acc end	
+										| (true, false) => 	
+										    let val t = Temp.newtemp()
+										    in Assem.OPER{assem=assem, dst=replace(t, dst), src=src, jump=jump} :: (genStore t) :: acc end	
+										| (false, true) => 
+										    let val t = Temp.newtemp()
+										    in (genFetch t) :: Assem.OPER{assem=assem, dst=dst, src=replace(t, src), jump=jump} :: acc end	
+										| (false, false) => Assem.OPER{assem=assem, dst=dst, src=src, jump=jump} :: acc)
+
+								|	Assem.LABEL{assem, lab} => instr :: acc
+								|	Assem.MOVE{assem, dst, src} => 
+										(case (hasSpill [dst], hasSpill [src]) of
+											(true, true) => 
+										    let 
+													val t = Temp.newtemp()
+													val d = Temp.newtemp()
+										    in (genFetch t) :: Assem.MOVE{assem=assem, dst=hd (replace(d, [dst])), src=hd (replace(t, [src]))} :: (genStore d) :: acc end	
+										| (true, false) => 	
+										    let val t = Temp.newtemp()
+										    in Assem.MOVE{assem=assem, dst=hd (replace(t, [dst])), src=src} :: (genStore t) :: acc end	
+										| (false, true) => 
+										    let val t = Temp.newtemp()
+										    in (genFetch t) :: Assem.MOVE{assem=assem, dst=dst, src=hd (replace(t, [src]))} :: acc end	
+										| (false, false) => Assem.MOVE{assem=assem, dst=dst, src=src} :: acc)
+						in
+							foldr addInstrs [] instrs
+						end
+				in
+					foldl augmentInstr instrs spills
+				end
 		in
 			if List.length spills = 0
 			then (instrs, allocated)

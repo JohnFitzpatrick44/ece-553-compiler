@@ -23,11 +23,11 @@ fun emitproc out (F.PROC{body,frame}) =
 		val {body=instrs'', prolog=prolog, epilog=epilog} = F.procEntryExit3(frame, instrs')
 
 
-    (* val _ = print "-----------Instructions before allocation--------------\n"
+    val _ = print "-----------Instructions before allocation--------------\n"
     val format0 = Assem.format(Temp.makestring) (* Temp.makestring for now, we'll change it later on registor alloc *)
 		val _ = TextIO.output(out, prolog)
 		val _ = app (fn i => TextIO.output(out,format0 i)) instrs''
-		val _ = TextIO.output(out, epilog) *)
+		val _ = TextIO.output(out, epilog)
 
     val _ = print "-----------Instructions after allocation--------------\n"
     val (finalInstr, alloc) = RegAlloc.alloc(instrs'', frame)

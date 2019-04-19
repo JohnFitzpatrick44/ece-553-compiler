@@ -1,2 +1,2 @@
 Skeleton 5
-d2f5Cd"List"ä¢Temp"d"Option"d"String"d"ErrorMsg"Nad"Color"jh6aä¢L"gp1d"Liveness"Cad"Frame"gp1d"MipsFrame"ad"NodeSet"gp2ÿd"Set"ad"MoveSet"jgp2ÿ>d"EdgeOrd"çð±å¢BinarySetFn"ad"RegisterSet"jh0ÿ‚aä¢Graph"gp2ÿ>ÿƒNgp1c"COLOR"
+d2f4d"List"ä¢Temp"d"Option"d"String"ad"Color"jh6aä¢L"gp1d"Liveness"Cad"Frame"gp1d"MipsFrame"ad"NodeSet"gp2ÿd"Set"ad"MoveSet"jgp2ÿ1d"EdgeOrd"çð±å¢BinarySetFn"ad"RegisterSet"jh0ÿ‚aä¢Graph"gp2ÿ1ÿ‚4Ngp1c"COLOR"

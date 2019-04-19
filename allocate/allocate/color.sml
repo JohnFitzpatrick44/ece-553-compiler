@@ -30,7 +30,7 @@ struct
     | todo2str(Unfreeze{remaining}) = 
     "[Unfreeze]"
     | todo2str(Spill{remaining, spilled, neighbors}) = 
-    "[Simplify] spilled: " ^ Temp.makestring spilled ^ " neighbors: " ^ (String.concatWith ", " (map Temp.makestring neighbors))
+    "[Spill] spilled: " ^ Temp.makestring spilled ^ " neighbors: " ^ (String.concatWith ", " (map Temp.makestring neighbors))
 
 	val inf = 10000000
 
@@ -126,15 +126,15 @@ struct
       val todoStack = rev (todoList interference)
 
       (* prints out the stack *)
-      (* fun println s = print (s ^ "\n")
-      val () = app (println o todo2str) todoStack *)
+      fun println s = print (s ^ "\n")
+      val () = app (println o todo2str) todoStack
 
       fun freeReg(neighbors, alloc): Frame.register option = 
         let
           fun removeUsed(neighbor, remaining) =
             case Temp.Map.find(alloc, neighbor) of 
               SOME(reg) => safeDelete(remaining, reg) 
-            | NONE => ErrorMsg.impossible "All neighbors should've been allocated before this"
+            | NONE => RegisterSet.empty
 
           val remaining = foldl removeUsed registerSet neighbors
         in
@@ -146,12 +146,12 @@ struct
           Simplify{remaining, removed, neighbors}::rst => 
             (case freeReg(neighbors, alloc) of
                SOME(reg) => allocate(rst, Temp.Map.insert(alloc, removed, reg), spills)
-             | NONE => ErrorMsg.impossible "There should be some registers left")
+             | NONE => (print "Some neighbors were spilled... can't simplify\n" ; allocate(rst, alloc, spills)))
 
         | Coalesce{remaining, removed, union}::rst => 
             (case Temp.Map.find(alloc, union) of
                SOME(reg) => allocate(rst, Temp.Map.insert(alloc, removed, reg), spills)
-             | NONE => ErrorMsg.impossible "The merged temp should've been allocated before this")
+             | NONE => (print "The union spilled... can't simplify\n" ; allocate(rst, alloc, spills)))
 
         | Unfreeze{remaining}::rst => allocate(rst, alloc, spills)
 
