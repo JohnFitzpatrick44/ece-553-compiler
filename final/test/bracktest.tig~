@@ -1,0 +1,1 @@
+let var x := int[3] of 4 var y = x[2]+1 in 1 end;

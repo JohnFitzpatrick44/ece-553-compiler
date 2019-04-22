@@ -1,10 +1,7 @@
 let 
-  type a = b
-  type b = c 
-  type c = d
-  type d = b
-
-  var k: a := 1
-in
-  k + 1
+  type intArr = array of int
+  var x := intArr[10] of 0
+in 
+  x[a]
 end
+  

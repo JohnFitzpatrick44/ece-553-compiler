@@ -1,0 +1,7 @@
+let 
+  type intArr = array of int
+  var x := intArr[10] of 0
+in 
+  x[5]
+end
+  

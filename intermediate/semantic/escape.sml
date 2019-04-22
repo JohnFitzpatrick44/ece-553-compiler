@@ -38,7 +38,8 @@ struct
         (trExp test; trExp then'; doIfSome(trExp, else'))
         | trExp(A.WhileExp{test,body,pos}) = (trExp test; trExp body)
         | trExp(A.ForExp{var,escape,lo,hi,body,pos}) = 
-            (traverseExp(S.enter(env, var, (d, escape)), d, body);
+            (escape := false;
+             traverseExp(S.enter(env, var, (d, escape)), d, body);
              trExp lo; trExp hi)
         | trExp(A.BreakExp(_)) = ()
         | trExp(A.LetExp{decs, body, pos}) =

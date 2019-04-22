@@ -1,0 +1,23 @@
+let
+	var a0 := 1 
+	var a1 := 1 
+	var a2 := 1 
+	var a3 := 1 
+	var a4 := 1 
+	var a5 := 1 
+	var a6 := 1 
+	var a7 := 1 
+	var a8 := 1 
+	var a9 := 1 
+	var a10 := 1 
+	var a11 := 1 
+	var a12 := 1 
+	var a13 := 1 
+	var a14 := 1 
+	var a15 := 1 
+	var a16 := 1 
+	var a17 := 1 
+in
+	a0 + a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8 + a9 +
+	a10 + a11 + a12 + a13 + a14 + a15 + a16 + a17
+end
