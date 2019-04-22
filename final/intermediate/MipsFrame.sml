@@ -102,13 +102,52 @@ struct
   fun externalCall (s,args) = Tree.CALL(Tree.NAME(Temp.namedlabel s), args)
   
 
-  fun procEntryExit1 (frame, stm) = stm (* view shift - to be implemented in a later phase *)
+  fun procEntryExit1 (frame, stm) = let
+
+    (* all callee variables are stored no matter what *)
+    val toStore = RA::calleesaves
+
+    fun getOffset(access) = 
+      case access of
+        InFrame(offset) => offset
+      | _ => ErrorMsg.impossible "Argument could not be allocated."
+
+    (* copied over from translate *)
+    fun seq stmts =
+      case stmts of
+        [s] => s
+      | [s1, s2] => Tree.SEQ (s1, s2)
+      | stm::slist => Tree.SEQ (stm, seq(slist))
+      | _ => ErrorMsg.impossible "Empty sequence list received"
+
+    (* produces lists of statements to store registers, and accesses for those registers *)
+    fun shiftToMem (reg, (statements, (accesses, regs))) = 
+      let
+        val access = allocLocal frame true
+        val statement = Tree.MOVE(Tree.MEM(Tree.BINOP(Tree.PLUS, Tree.TEMP(FP), Tree.CONST (getOffset access))), Tree.TEMP reg)
+      in
+        (statement::statements, (access::accesses, reg::regs))
+      end
+
+    val (toMemStatements, argAccesses) = foldr shiftToMem ([], ([], [])) toStore    (* foldr as lists are reversed *)
+
+    fun shiftToTemp ((access, reg), statements) = 
+      val statement = Tree.MOVE(Tree.TEMP reg, Tree.MEM(Tree.BINOP(Tree.PLUS, Tree.TEMP(FP), Tree.CONST (getOffset access))))
+    in 
+      statement::statements
+    end
+
+    val toTempStatements = foldr shiftToTemp [] argAccesses    (* order here shouldn't matter *)
+  in
+    seq([Tree.LABEL(name frame) (* add view shift *) ] @ toMemStatements @ [stm] @ toTempStatements)
+  end
+
 
 	fun procEntryExit2 (frame, body) = 
 		body @ [Assem.OPER{assem="", 
 										 	 src=[ZERO, RA, SP, FP, RV] @ (map (fn (s, r) => r) calleesavespairs), 
 											 dst=[], 
-											 jump=SOME []}] (* no idea why it's SOME[] in the book *)
+											 jump=SOME []}]
 
 	fun procEntryExit3({name,formals,frameSize}, body) =
 		{prolog = "PROCEDURE " ^ Symbol.name name ^ "\n",
@@ -135,7 +174,6 @@ struct
     | printFrag(outstream, STRING(label, str)) = 
         TextIO.output(outstream, "----- STR FRAG(" ^ (Symbol.name label) ^ ")----\n" ^ str ^ "\n")
 
-  (* TODO *)
-  fun string (label, str) = Symbol.name label ^ str
+  fun string (label, str) = S.name label ^ ": .asciiz \"" ^ str ^ "\"\n"
 
 end
