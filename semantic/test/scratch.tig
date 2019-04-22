@@ -1,10 +1,10 @@
 let 
-  type a = b
-  type b = c 
-  type c = d
-  type d = b
+  type treeNode = {v: int, left: treeNode, right: treeNode}
 
-  var k: a := 1
+  var root: treeNode := treeNode {v=1, 
+                                  left=nil, 
+                                  right=treeNode {v=2, left=nil, right=nil}}
+  function f(i: int) = f(root.v)
 in
-  k + 1
+  f(10)
 end

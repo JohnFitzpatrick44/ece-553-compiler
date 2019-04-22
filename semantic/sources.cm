@@ -17,6 +17,8 @@ semantic/semant.sml
 semantic/main.sml
 semantic/translate.sml
 semantic/log.sml
+semantic/escape.sig
+semantic/escape.sml
 
 $/smlnj-lib.cm
 $/ml-yacc-lib.cm
