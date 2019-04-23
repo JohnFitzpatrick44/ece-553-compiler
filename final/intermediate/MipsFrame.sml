@@ -113,13 +113,12 @@ struct
 
   
   (* Regalloc spills calleesaves if necessary *)
-  fun procEntryExit1 (frame, stm) = 
+  (*fun procEntryExit1 (frame, stm) = 
     let 
       val viewShift = 
         let
           fun makeStm(access, reg) = Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP reg)
         in
-          (* !!! need to handle case where argument is in memory *)
           map makeStm (ListPair.zip(formals frame, argregs))
         end
 
@@ -129,7 +128,44 @@ struct
       fun shiftToTemp (reg, access) = Tree.MOVE(Tree.TEMP reg, exp access (Tree.TEMP FP))
     in
       seq(viewShift @ (map shiftToMem regAccess) @ [stm] @ (map shiftToTemp regAccess))
+    end*)
+
+  fun procEntryExit1 (frame, stm) = let
+
+    val toStore = RA::calleesaves
+
+    fun getOffset(access) = 
+      case access of
+        InFrame(offset) => offset
+      | _ => ErrorMsg.impossible "Argument could not be allocated."
+
+    val viewShift = 
+      let
+        fun makeStm(access, reg) = Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP reg)
+      in
+        map makeStm ListPair.zip(formals frame, argregs)
+      end
+
+    fun shiftToMem (reg, (statements, (accesses, regs))) = 
+      let
+        val access = allocLocal frame true
+        val statement = Tree.MOVE(Tree.MEM(Tree.BINOP(Tree.PLUS, Tree.TEMP(FP), Tree.CONST (getOffset access))), Tree.TEMP reg)
+      in
+        (statement::statements, (access::accesses, reg::regs))
+      end
+
+    val (toMemStatements, argAccesses) = foldr shiftToMem ([], ([], [])) toStore    (* foldr as lists are reversed *)
+
+    fun shiftToTemp ((access, reg), statements) = 
+      val statement = Tree.MOVE(Tree.TEMP reg, Tree.MEM(Tree.BINOP(Tree.PLUS, Tree.TEMP(FP), Tree.CONST (getOffset access))))
+    in 
+      statement::statements
     end
+
+    val toTempStatements = foldr shiftToTemp [] argAccesses    (* order here shouldn't matter *)
+  in
+    seq(viewShift @ toMemStatements @ [stm] @ toTempStatements)
+  end
     
 	fun procEntryExit2 (frame, body) = 
 		body @ [Assem.OPER{assem="", 
