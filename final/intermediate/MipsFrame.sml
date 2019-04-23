@@ -152,7 +152,7 @@ struct
         (statement::statements, (access, reg)::accesses)
       end
 
-    val (toMemStatements, argAccesses) = foldr shiftToMem ([], ([], [])) (RA::calleesaves)    (* foldr as lists are reversed *)
+    val (toMemStatements, argAccesses) = foldr shiftToMem ([], []) (RA::calleesaves)    (* foldr as lists are reversed *)
 
     fun shiftToTemp (access, reg) = Tree.MOVE(Tree.TEMP reg, Tree.MEM(Tree.BINOP(Tree.PLUS, Tree.TEMP(FP), Tree.CONST (getOffset access))))
 
