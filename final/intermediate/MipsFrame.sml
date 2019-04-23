@@ -132,8 +132,6 @@ struct
 
   fun procEntryExit1 (frame, stm) = let
 
-    val toStore = RA::calleesaves
-
     fun getOffset(access) = 
       case access of
         InFrame(offset) => offset
@@ -154,15 +152,11 @@ struct
         (statement::statements, (access::accesses, reg::regs))
       end
 
-    val (toMemStatements, argAccesses) = foldr shiftToMem ([], ([], [])) toStore    (* foldr as lists are reversed *)
+    val (toMemStatements, argAccesses) = foldr shiftToMem ([], ([], [])) (RA::calleesaves)    (* foldr as lists are reversed *)
 
-    fun shiftToTemp ((access, reg), statements) = 
-      val statement = Tree.MOVE(Tree.TEMP reg, Tree.MEM(Tree.BINOP(Tree.PLUS, Tree.TEMP(FP), Tree.CONST (getOffset access))))
-    in 
-      statement::statements
-    end
+    fun shiftToTemp (access, reg) = Tree.MOVE(Tree.TEMP reg, Tree.MEM(Tree.BINOP(Tree.PLUS, Tree.TEMP(FP), Tree.CONST (getOffset access))))
 
-    val toTempStatements = foldr shiftToTemp [] argAccesses    (* order here shouldn't matter *)
+    val toTempStatements = map shiftToTemp argAccesses 
   in
     seq(viewShift @ toMemStatements @ [stm] @ toTempStatements)
   end
