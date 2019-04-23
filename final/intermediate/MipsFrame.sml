@@ -100,7 +100,6 @@ struct
   fun storeInstr(InFrame offset) = "sw `s0, " ^ (intToString offset) ^ "($fp)\n"
 
   fun externalCall (s,args) = Tree.CALL(Tree.NAME(Temp.namedlabel s), args)
-  
 
   fun procEntryExit1 (frame, stm) = let
 
@@ -119,6 +118,14 @@ struct
       | [s1, s2] => Tree.SEQ (s1, s2)
       | stm::slist => Tree.SEQ (stm, seq(slist))
       | _ => ErrorMsg.impossible "Empty sequence list received"
+
+    val viewShift = 
+      let
+        fun makeStm(access, reg) = Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP reg)
+      in
+        (* !!! need to handle case where argument is in memory *)
+        map makeStm ListPair.zip(formals frame, argregs)
+      end
 
     (* produces lists of statements to store registers, and accesses for those registers *)
     fun shiftToMem (reg, (statements, (accesses, regs))) = 
@@ -139,8 +146,10 @@ struct
 
     val toTempStatements = foldr shiftToTemp [] argAccesses    (* order here shouldn't matter *)
   in
-    seq([Tree.LABEL(name frame) (* add view shift *) ] @ toMemStatements @ [stm] @ toTempStatements)
+    seq([Tree.LABEL(name frame)] @ viewShift @ toMemStatements @ [stm] @ toTempStatements)
   end
+
+
 
 
 	fun procEntryExit2 (frame, body) = 
@@ -153,6 +162,10 @@ struct
 		{prolog = "PROCEDURE " ^ Symbol.name name ^ "\n",
 		 body = body,
 		 epilog = "END " ^ Symbol.name name ^ "\n"}	(* placeholder *)
+
+
+
+
 
 
   val tempMap = foldl (fn ((r, t), table) => Temp.Map.insert(table, t, r)) Temp.Map.empty (specialregspairs@argregspairs@calleesavespairs@callersavespairs)
