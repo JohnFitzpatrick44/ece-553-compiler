@@ -51,7 +51,8 @@ fun emitproc out (F.PROC{body,frame}) =
             TextIO.output(out,".globl main\n.data\n");
             app (emitproc out) strings;
             TextIO.output(out,".text\n");
-            app (emitproc out) instrs
+            app (emitproc out) instrs;
+            TextIO.output(out, TextIO.inputAll (TextIO.openIn "runtime.s"))
           ))
       end
 	
