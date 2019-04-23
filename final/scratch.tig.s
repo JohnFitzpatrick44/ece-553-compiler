@@ -1,3 +1,60 @@
+.globl main
+.data
+L1307:
+.word 13
+.ascii "Hello World\n"
+.text
+main:
+sw $fp 0($sp)
+move $fp $sp
+addiu $sp $sp -40
+L1309:
+sw $a0, -4($fp)
+sw $ra, -40($fp)
+sw $s0, -36($fp)
+sw $s1, -32($fp)
+sw $s2, -28($fp)
+sw $s3, -24($fp)
+sw $s4, -20($fp)
+sw $s5, -16($fp)
+sw $s6, -12($fp)
+sw $s7, -8($fp)
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+la $a0, L1307
+move $a0, $a0
+jal tig_print
+move $v0, $0
+lw $ra, -40($fp)
+lw $s0, -36($fp)
+lw $s1, -32($fp)
+lw $s2, -28($fp)
+lw $s3, -24($fp)
+lw $s4, -20($fp)
+lw $s5, -16($fp)
+lw $s6, -12($fp)
+lw $s7, -8($fp)
+j L1308
+L1308:
+move $sp $fp
+lw $fp 0($sp)
+jr $ra
 # system calls for Tiger, when running on SPIM
 #
 # $Id: sysspim.s,v 1.1 2002/08/25 05:06:41 shivers Exp $

@@ -198,6 +198,6 @@ struct
     | printFrag(outstream, STRING(label, str)) = 
         TextIO.output(outstream, "----- STR FRAG(" ^ (Symbol.name label) ^ ")----\n" ^ str ^ "\n")
 
-  fun string (label, str) = Symbol.name label ^ ": .asciiz \"" ^ str ^ "\"\n"
+  fun string (label, str) = Symbol.name label ^ ":\n.word "^(Int.toString(size(str))) ^ "\n.ascii \"" ^ str ^ "\"\n"
 
 end

@@ -40,7 +40,8 @@ fun emitproc out (F.PROC{body,frame}) =
       end 
 
   fun compile filename = 
-      let val absyn = Parse.parse filename
+      let val _ = Tr.clear() 
+	  val absyn = Parse.parse filename
           val frags = (FindEscape.prog absyn; S.transProg absyn)
           fun separateStrings frag = case frag of 
                                        F.STRING(_) => true
