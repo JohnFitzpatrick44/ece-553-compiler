@@ -121,7 +121,7 @@ struct
           fun makeStm(access, reg) = Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP reg)
         in
           (* !!! need to handle case where argument is in memory *)
-          map makeStm ListPair.zip(formals frame, argregs)
+          map makeStm (ListPair.zip(formals frame, argregs))
         end
 
       fun allocReg (reg) = (reg, allocLocal frame false)
@@ -134,7 +134,7 @@ struct
     
 	fun procEntryExit2 (frame, body) = 
 		body @ [Assem.OPER{assem="", 
-										 	 src=[ZERO, RA, SP, FP, RV] @ calleesaves), 
+										 	 src=[ZERO, RA, SP, FP, RV] @ calleesaves, 
 											 dst=[], 
 											 jump=SOME []}]
 
@@ -143,7 +143,7 @@ struct
 		{prolog = Symbol.name name ^ ":\n" ^ 
               "sw $fp 0($sp)\n" ^ 
               "move $fp $sp\n" ^ 
-              "addiu $sp $sp -" ^ (Int.toString !frameSize) ^ "\n",
+              "addiu $sp $sp -" ^ (Int.toString (!frameSize)) ^ "\n",
 		 body = body,
 		 epilog = "move $sp $fp\n" ^ 
               "lw $fp 0($sp)\n" ^ 
@@ -169,6 +169,6 @@ struct
     | printFrag(outstream, STRING(label, str)) = 
         TextIO.output(outstream, "----- STR FRAG(" ^ (Symbol.name label) ^ ")----\n" ^ str ^ "\n")
 
-  fun string (label, str) = S.name label ^ ": .asciiz \"" ^ str ^ "\"\n"
+  fun string (label, str) = Symbol.name label ^ ": .asciiz \"" ^ str ^ "\"\n"
 
 end
