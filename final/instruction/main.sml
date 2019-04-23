@@ -47,12 +47,12 @@ fun emitproc out (F.PROC{body,frame}) =
                                      | _ => false
           val (strings, instrs) = List.partition separateStrings frags
         in 
-          withOpenFile (filename ^ ".s") (fn out => 
+          withOpenFile (filename ^ ".s") (fn out => (
             TextIO.output(out,".globl main\n.data\n");
             app (emitproc out) strings;
             TextIO.output(out,".text\n");
             app (emitproc out) instrs
-          )
+          ))
       end
 	
 	fun test filename = 

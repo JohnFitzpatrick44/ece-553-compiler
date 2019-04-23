@@ -81,8 +81,7 @@ struct
         | allocFormals(escape::elist, offset, unescaped) = 
             if ((not escape) andalso (unescaped < aRegs))
             then InReg(Temp.newtemp())::allocFormals(elist, offset, unescaped + 1)
-            else (* totalOffset := !totalOffset + wordSize; InFrame(offset - wordSize)::allocFormals(elist, offset - wordSize, unescaped) *)
-              ErrorMsg.impossible "Spilled arguments not implemented."
+            else (totalOffset := !totalOffset + wordSize; InFrame(offset - wordSize)::allocFormals(elist, offset - wordSize, unescaped) )
     in
       {name = name, formals = allocFormals(formals, 0, 0), frameSize = totalOffset}
     end
