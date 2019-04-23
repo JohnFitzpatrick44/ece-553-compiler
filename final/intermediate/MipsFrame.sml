@@ -141,15 +141,15 @@ struct
       let
         fun makeStm(access, reg) = Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP reg)
       in
-        map makeStm ListPair.zip(formals frame, argregs)
+        map makeStm (ListPair.zip(formals frame, argregs))
       end
 
-    fun shiftToMem (reg, (statements, (accesses, regs))) = 
+    fun shiftToMem (reg, (statements, accesses)) = 
       let
         val access = allocLocal frame true
         val statement = Tree.MOVE(Tree.MEM(Tree.BINOP(Tree.PLUS, Tree.TEMP(FP), Tree.CONST (getOffset access))), Tree.TEMP reg)
       in
-        (statement::statements, (access::accesses, reg::regs))
+        (statement::statements, (access, reg)::accesses)
       end
 
     val (toMemStatements, argAccesses) = foldr shiftToMem ([], ([], [])) (RA::calleesaves)    (* foldr as lists are reversed *)
