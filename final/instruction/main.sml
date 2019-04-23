@@ -9,9 +9,9 @@ fun getsome (SOME x) = x
 
 fun emitproc out (F.PROC{body,frame}) =
   let 
-    fun tempString temp = case Temp.Map.find(frame.tempMap, temp) of
-                            SOME(r) => r
-                          | NONE => Temp.makestring t 
+    fun tempString alloc temp = case Temp.Map.find(alloc, temp) of
+                                  SOME(r) => r
+                                | NONE => Temp.makestring temp 
 		val _ = print ("emit " ^ Temp.labelString (F.name frame) ^ "\n")
 	  val stms = Canon.linearize body
     val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
@@ -51,8 +51,7 @@ fun emitproc out (F.PROC{body,frame}) =
             TextIO.output(out,".globl main\n.data\n");
             app (emitproc out) strings;
             TextIO.output(out,".text\n");
-            app (emitproc out) instrs;
-            ()
+            app (emitproc out) instrs
           )
       end
 	
