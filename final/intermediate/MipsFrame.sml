@@ -64,6 +64,16 @@ struct
   val wordSize = 4
   val aRegs = 4
 
+  (* copied over from translate *)
+  fun seq stmts =
+    case stmts of
+      [s] => s
+    | [s1, s2] => Tree.SEQ (s1, s2)
+    | stm::slist => Tree.SEQ (stm, seq(slist))
+    | _ => ErrorMsg.impossible "Empty sequence list received"
+
+
+
   fun newFrame({name = name, formals = formals}) = 
     let 
       val totalOffset = ref 0
@@ -71,7 +81,8 @@ struct
         | allocFormals(escape::elist, offset, unescaped) = 
             if ((not escape) andalso (unescaped < aRegs))
             then InReg(Temp.newtemp())::allocFormals(elist, offset, unescaped + 1)
-            else (totalOffset := !totalOffset + wordSize; InFrame(offset - wordSize)::allocFormals(elist, offset - wordSize, unescaped))
+            else (* totalOffset := !totalOffset + wordSize; InFrame(offset - wordSize)::allocFormals(elist, offset - wordSize, unescaped) *)
+              ErrorMsg.impossible "Spilled arguments not implemented."
     in
       {name = name, formals = allocFormals(formals, 0, 0), frameSize = totalOffset}
     end
@@ -90,8 +101,8 @@ struct
       else InReg(Temp.newtemp())
     end
 
-  fun exp (InReg t) exp = Tree.TEMP(t)
-    | exp (InFrame offset) exp = Tree.MEM(Tree.BINOP(Tree.PLUS, exp, Tree.CONST(offset)))
+  fun exp (InReg t) e = Tree.TEMP(t)
+    | exp (InFrame offset) e = Tree.MEM(Tree.BINOP(Tree.PLUS, e, Tree.CONST(offset)))
 
 
   fun intToString i = if i < 0 then "-"^(Int.toString (0-i)) else Int.toString i
@@ -101,71 +112,42 @@ struct
 
   fun externalCall (s,args) = Tree.CALL(Tree.NAME(Temp.namedlabel s), args)
 
-  fun procEntryExit1 (frame, stm) = let
+  
+  (* Regalloc spills calleesaves if necessary *)
+  fun procEntryExit1 (frame, stm) = 
+    let 
+      val viewShift = 
+        let
+          fun makeStm(access, reg) = Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP reg)
+        in
+          (* !!! need to handle case where argument is in memory *)
+          map makeStm ListPair.zip(formals frame, argregs)
+        end
 
-    (* all callee variables are stored no matter what *)
-    val toStore = RA::calleesaves
-
-    fun getOffset(access) = 
-      case access of
-        InFrame(offset) => offset
-      | _ => ErrorMsg.impossible "Argument could not be allocated."
-
-    (* copied over from translate *)
-    fun seq stmts =
-      case stmts of
-        [s] => s
-      | [s1, s2] => Tree.SEQ (s1, s2)
-      | stm::slist => Tree.SEQ (stm, seq(slist))
-      | _ => ErrorMsg.impossible "Empty sequence list received"
-
-    val viewShift = 
-      let
-        fun makeStm(access, reg) = Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP reg)
-      in
-        (* !!! need to handle case where argument is in memory *)
-        map makeStm ListPair.zip(formals frame, argregs)
-      end
-
-    (* produces lists of statements to store registers, and accesses for those registers *)
-    fun shiftToMem (reg, (statements, (accesses, regs))) = 
-      let
-        val access = allocLocal frame true
-        val statement = Tree.MOVE(Tree.MEM(Tree.BINOP(Tree.PLUS, Tree.TEMP(FP), Tree.CONST (getOffset access))), Tree.TEMP reg)
-      in
-        (statement::statements, (access::accesses, reg::regs))
-      end
-
-    val (toMemStatements, argAccesses) = foldr shiftToMem ([], ([], [])) toStore    (* foldr as lists are reversed *)
-
-    fun shiftToTemp ((access, reg), statements) = 
-      val statement = Tree.MOVE(Tree.TEMP reg, Tree.MEM(Tree.BINOP(Tree.PLUS, Tree.TEMP(FP), Tree.CONST (getOffset access))))
-    in 
-      statement::statements
+      fun allocReg (reg) = (reg, allocLocal frame false)
+      val regAccess = map allocReg (RA::calleesaves)
+      fun shiftToMem (reg, access) = Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP reg)
+      fun shiftToTemp (reg, access) = Tree.MOVE(Tree.TEMP reg, exp access (Tree.TEMP FP))
+    in
+      seq(viewShift @ (map shiftToMem regAccess) @ [stm] @ (map shiftToTemp regAccess))
     end
-
-    val toTempStatements = foldr shiftToTemp [] argAccesses    (* order here shouldn't matter *)
-  in
-    seq([Tree.LABEL(name frame)] @ viewShift @ toMemStatements @ [stm] @ toTempStatements)
-  end
-
-
-
-
+    
 	fun procEntryExit2 (frame, body) = 
 		body @ [Assem.OPER{assem="", 
-										 	 src=[ZERO, RA, SP, FP, RV] @ (map (fn (s, r) => r) calleesavespairs), 
+										 	 src=[ZERO, RA, SP, FP, RV] @ calleesaves), 
 											 dst=[], 
 											 jump=SOME []}]
 
+
 	fun procEntryExit3({name,formals,frameSize}, body) =
-		{prolog = "PROCEDURE " ^ Symbol.name name ^ "\n",
+		{prolog = Symbol.name name ^ ":\n" ^ 
+              "sw $fp 0($sp)\n" ^ 
+              "move $fp $sp\n" ^ 
+              "addiu $sp $sp -" ^ (Int.toString !frameSize) ^ "\n",
 		 body = body,
-		 epilog = "END " ^ Symbol.name name ^ "\n"}	(* placeholder *)
-
-
-
-
+		 epilog = "move $sp $fp\n" ^ 
+              "lw $fp 0($sp)\n" ^ 
+              "jr $ra\n"}	
 
 
   val tempMap = foldl (fn ((r, t), table) => Temp.Map.insert(table, t, r)) Temp.Map.empty (specialregspairs@argregspairs@calleesavespairs@callersavespairs)
