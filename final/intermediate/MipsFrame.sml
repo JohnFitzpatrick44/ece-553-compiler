@@ -142,14 +142,14 @@ struct
     (* View shift in frame arguments *)
     val viewShift = 
       let
-        val index = ref 0
-        fun makeStm(access) = index := !index + 1; 
+        val index = ref ~1
+        fun makeStm(access) = (index := !index + 1; 
                               if !index < 4 then 
                                 Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP (List.nth(argregs, !index)))
                               else 
-                                Tree.MOVE(exp access (Tree.TEMP FP), exp (InFrame((3-!index)*wordSize)) (Tree.TEMP FP))
+                                Tree.MOVE(exp access (Tree.TEMP FP), exp (InFrame((3-(!index))*wordSize)) (Tree.TEMP FP)))
       in
-        map makeStm (ListPair.zip(formals frame))
+        map makeStm (rev (formals frame))
       end
 
     fun shiftToMem (reg, (statements, accesses)) = 
