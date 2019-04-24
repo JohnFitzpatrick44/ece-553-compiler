@@ -8,7 +8,7 @@ sig
   val tempMap: register Temp.Map.map
 
 
-  val newFrame : {name: Temp.label, formals: bool list} -> frame
+  val newFrame : {name: Temp.label, formals: bool list, parentSize: int option} -> frame
   val name : frame -> Temp.label
   val formals : frame -> access list
   val allocLocal : frame -> bool -> access
@@ -23,10 +23,13 @@ sig
 				{prolog: Assem.instr list, body: Assem.instr list, epilog: Assem.instr list}
   val externalCall: string * Tree.exp list -> Tree.exp
 
+  val getFrameSize: frame -> int
+
   val wordSize : int
 
   val ZERO: Temp.temp
   val FP : Temp.temp
+  val SP : Temp.temp
   val RV : Temp.temp
 
   datatype frag = PROC of {body: Tree.stm, frame: frame}

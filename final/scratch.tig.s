@@ -3,56 +3,53 @@
 .text
 tig_main:
 move $fp, $sp
-addiu $sp, $sp, -16
-L1466:
-sw $a0, -4($fp)
+addiu $sp, $sp, -8
+L2843:
+move $a0, $a0
 move $a0, $ra
 sw $a0, -8($fp)
-move $a0, $s0
-sw $a0, -12($fp)
-move $a0, $s1
-sw $a0, -16($fp)
+move $s0, $s0
+move $s1, $s1
 move $s2, $s2
 move $s3, $s3
 move $s4, $s4
-move $a3, $s5
-move $a2, $s6
-move $a1, $s7
-li $v0, 0
+move $s5, $s5
+move $s6, $s6
+move $s7, $s7
+li $a0, 0
 li $a0, 1
-li $t9, 2
-li $t8, 3
-li $t7, 4
-li $t6, 5
-li $t5, 6
-li $t4, 7
-li $t3, 8
-li $t2, 9
-li $t1, 1
-li $t0, 1
-li $s7, 1
-li $s6, 1
-li $s5, 1
-li $s1, 1
-li $s0, 1
-li $ra, 13
-add $a0, $v0, $a0
-add $a0, $a0, $t9
-add $a0, $a0, $t8
-add $a0, $a0, $t7
-add $a0, $a0, $t6
-add $a0, $a0, $t5
-add $a0, $a0, $t4
-add $a0, $a0, $t3
-add $a0, $a0, $t2
-add $a0, $a0, $t1
-add $a0, $a0, $t0
-add $a0, $a0, $s7
-add $a0, $a0, $s6
-add $a0, $a0, $s5
-add $a0, $a0, $s1
-add $a0, $a0, $s0
-add $a0, $a0, $ra
+li $a0, 2
+li $a0, 3
+li $a0, 4
+li $a0, 5
+li $a0, 6
+li $a0, 7
+li $a0, 8
+li $a0, 9
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 1
+li $a0, 13
+li $a0, 11
+move $a0, $a0
+li $a1, 11
+move $a1, $a1
+li $a2, 11
+move $a2, $a2
+li $a3, 11
+move $a3, $a3
+li $ra, 11
+sw $ra, -4($sp)
+li $ra, 11
+sw $ra, -8($sp)
+sw $fp, -12($sp)
+jal L2841
+move $a0, $v0
+move $a0, $a0
 move $a0, $a0
 jal tig_chr
 move $a0, $v0
@@ -63,20 +60,56 @@ move $a0, $v0
 move $v0, $a0
 lw $a0, -8($fp)
 move $ra, $a0
-lw $a0, -12($fp)
-move $s0, $a0
-lw $a0, -16($fp)
-move $s1, $a0
+move $s0, $s0
+move $s1, $s1
 move $s2, $s2
 move $s3, $s3
 move $s4, $s4
-move $s5, $a3
-move $s6, $a2
-move $s7, $a1
-j L1465
-L1465:
+move $s5, $s5
+move $s6, $s6
+move $s7, $s7
+j L2842
+L2842:
 move $sp, $fp
-lw $fp, 0($sp)
+jr $ra
+L2841:
+move $fp, $sp
+addiu $sp, $sp, -12
+L2981:
+move $a0, $a0
+move $a1, $a1
+move $a2, $a2
+move $a3, $a3
+lw $t0, -4($fp)
+lw $t1, -8($fp)
+lw $t2, -12($fp)
+move $ra, $ra
+move $s0, $s0
+move $s1, $s1
+move $s2, $s2
+move $s3, $s3
+move $s4, $s4
+move $s5, $s5
+move $s6, $s6
+move $s7, $s7
+add $t0, $t1, $t0
+add $a3, $t0, $a3
+add $a2, $a3, $a2
+add $a1, $a2, $a1
+add $a0, $a1, $a0
+move $v0, $a0
+move $ra, $ra
+move $s0, $s0
+move $s1, $s1
+move $s2, $s2
+move $s3, $s3
+move $s4, $s4
+move $s5, $s5
+move $s6, $s6
+move $s7, $s7
+j L2980
+L2980:
+move $sp, $fp
 jr $ra
 # system calls for Tiger, when running on SPIM
 #

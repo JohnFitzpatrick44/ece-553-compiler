@@ -59,7 +59,7 @@ struct
   datatype access = InFrame of int
                   | InReg of Temp.temp
 
-  type frame = {name: Temp.label, formals: access list, frameSize: int ref}
+  type frame = {name: Temp.label, formals: access list, frameSize: int ref, parentSize: int option}
 
   val wordSize = 4
   val aRegs = 4
@@ -73,27 +73,28 @@ struct
     | _ => ErrorMsg.impossible "Empty sequence list received"
 
 
+  fun getFrameSize({name=_, formals=_, frameSize = fs, parentSize = _}) = !fs 
 
-  fun newFrame({name = name, formals = formals}) = 
+  fun newFrame({name = name, formals = formals, parentSize = parentSize}) = 
     let 
-      val totalOffset = ref 0
+      val totalOffset = ref  0
       fun allocFormals([], offset, unescaped) = []
         | allocFormals(escape::elist, offset, unescaped) = 
             if ((not escape) andalso (unescaped < aRegs))
             then InReg(Temp.newtemp())::allocFormals(elist, offset, unescaped + 1)
-            else (totalOffset := !totalOffset + wordSize; InFrame(offset - wordSize)::allocFormals(elist, offset - wordSize, unescaped) )
+            else (totalOffset := !totalOffset + wordSize; InReg(Temp.newtemp())::allocFormals(elist, offset - wordSize, unescaped) )
     in
-      {name = name, formals = allocFormals(formals, 0, 0), frameSize = totalOffset}
-   end
+      {name = name, formals = allocFormals(formals, 0, 0), frameSize = totalOffset, parentSize = parentSize}
+    end
 
-  fun name({name = name, formals = _ , frameSize = _}) = name
+  fun name({name = name, formals = _ , frameSize = _, parentSize = _}) = name
 
-  fun formals({name = _, formals = formals , frameSize = _}) = formals
+  fun formals({name = _, formals = formals , frameSize = _, parentSize = _}) = formals
 
   fun allocLocal fr esc = 
     let 
-      fun incrementOffset {name=_, formals=_, frameSize = offset} = offset := !offset + wordSize
-      fun getOffset       {name=_, formals=_, frameSize = offset} = !offset
+      fun incrementOffset {name=_, formals=_, frameSize = offset, parentSize = _} = offset := !offset + wordSize
+      fun getOffset       {name=_, formals=_, frameSize = offset, parentSize = _} = !offset
     in 
       if esc
       then (incrementOffset fr; InFrame(0 - (getOffset fr)))
@@ -113,14 +114,21 @@ struct
 
   
   (* Regalloc spills calleesaves if necessary *)
+
   fun procEntryExit1 (frame, stm) = 
     let 
       val viewShift = 
         let
-          fun makeStm(access, reg) = Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP reg)
+          val index = ref ~1
+          fun makeStm(access) = (index := !index + 1; 
+                                if !index < 4 then 
+                                  Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP (List.nth(argregs, !index)))
+                                else 
+                                  Tree.MOVE(exp access (Tree.TEMP FP), exp (InFrame((3-(!index))*wordSize)) (Tree.TEMP FP)))
         in
-          map makeStm (ListPair.zip(formals frame, argregs))
+          map makeStm (rev (formals frame))
         end
+
 
       fun allocReg (reg) = (reg, allocLocal frame false)
       val regAccess = map allocReg (RA::calleesaves)
@@ -130,7 +138,8 @@ struct
       seq(viewShift @ (map shiftToMem regAccess) @ [stm] @ (map shiftToTemp regAccess))
     end
 
-	(*
+
+  (*
   fun procEntryExit1 (frame, stm) = let
 
     fun getOffset(access) = 
@@ -140,11 +149,17 @@ struct
 
     val viewShift = 
       let
-        fun makeStm(access, reg) = Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP reg)
+        val index = ref ~1
+        fun makeStm(access) = (index := !index + 1; 
+                              if !index < 4 then 
+                                Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP (List.nth(argregs, !index)))
+                              else 
+                                Tree.MOVE(exp access (Tree.TEMP FP), exp (InFrame((3-(!index))*wordSize)) (Tree.TEMP FP)))
       in
-        map makeStm (ListPair.zip(formals frame, argregs))
+        map makeStm (rev (formals frame))
       end
 
+    (* View shift in frame arguments *)
     fun shiftToMem (reg, (statements, accesses)) = 
       let
         val access = allocLocal frame true
@@ -161,7 +176,7 @@ struct
   in
     seq(viewShift @ toMemStatements @ [stm] @ toTempStatements)
   end
-	*)
+  *)
     
 	fun procEntryExit2 (frame, body) = 
 		body @ [Assem.OPER{assem="", 
@@ -169,16 +184,15 @@ struct
 											 dst=[], 
 											 jump=SOME []}]
 
-	fun procEntryExit3({name,formals,frameSize}, body) =
-    { 
-      prolog=[Assem.LABEL{assem=(Symbol.name name) ^ ":\n", lab=name},
-              Assem.MOVE{assem="move `d0, `s0\n", dst=FP, src=SP},
-              Assem.OPER{assem="addiu `d0, `s0, -" ^ (Int.toString (!frameSize)) ^ "\n", dst=[SP], src=[SP], jump=NONE}],
-      body= body,
-      epilog=[Assem.MOVE{assem="move `d0, `s0\n", dst=SP, src=FP},
-              Assem.OPER{assem="lw `d0, 0(`s0)\n", dst=[FP], src=[SP], jump=NONE},
-              Assem.OPER{assem="jr `s0\n", dst=[], src=[RA], jump=NONE}]
-    }
+	fun procEntryExit3({name,formals,frameSize,parentSize}, body) =
+      { 
+        prolog=[Assem.LABEL{assem=(Symbol.name name) ^ ":\n", lab=name},
+                Assem.MOVE{assem="move `d0, `s0\n", dst=FP, src=SP},
+                Assem.OPER{assem="addiu `d0, `s0, -" ^ (Int.toString (!frameSize)) ^ "\n", dst=[SP], src=[SP], jump=NONE}],
+        body= body,
+        epilog=[Assem.MOVE{assem="move `d0, `s0\n", dst=SP, src=FP},
+                Assem.OPER{assem="jr `s0\n", dst=[], src=[RA], jump=NONE}]
+      }
 
   val tempMap = foldl (fn ((r, t), table) => Temp.Map.insert(table, t, r)) Temp.Map.empty (specialregspairs@argregspairs@calleesavespairs@callersavespairs)
 

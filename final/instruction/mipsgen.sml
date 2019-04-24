@@ -22,21 +22,23 @@ struct
 			fun result(gen) = let val t = Temp.newtemp() in gen t; t end
 			val toDoTemp = Temp.newtemp()
 
-			(* we can take care of > 4 args later... or do we even ?? *)
+
+
+
 			fun munchArgs(idx, []) = []
 			  | munchArgs(idx, arg::args) = (*(munchExp arg) :: (munchArgs (idx+1, args))*)
-					if idx < (List.length Frame.argregs)
-					then 
-						let
-							val src = munchExp arg
-							val dst = (List.nth (Frame.argregs, idx))
-							val moveStm = T.MOVE(T.TEMP dst, T.TEMP src)
-						in
-							munchStm(moveStm);
-                  			dst::munchArgs(idx+1,args)
-						end
-					else
-						[] (*???*)
+			  	let
+			  		val src = T.TEMP (munchExp arg)
+			  		val dst = if idx < (List.length Frame.argregs) then
+			  			(T.TEMP (List.nth (Frame.argregs, idx)))
+			  		else
+			  			T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST( ((List.length Frame.argregs)-idx-1)*Frame.wordSize )))
+			  	in
+			  		munchStm(T.MOVE(dst, src));
+			  		case dst of
+	            T.TEMP t => t::munchArgs(idx+1,args)
+	          | _ => munchArgs(idx+1,args)
+			  	end
 
 			and munchStm (T.SEQ(a, b)) = (munchStm(a); munchStm(b))
 
@@ -213,7 +215,7 @@ struct
 
 				| munchExp (T.CALL(T.NAME lab, args)) =
 						result(fn r => 
-										(emit(oper("jal " ^ (Symbol.name lab), Frame.calldefs, munchArgs(0, args), NONE)); 
+										(emit(oper("jal " ^ (Symbol.name lab), Frame.calldefs, munchArgs(0, rev args), NONE)); 
 										 emit(oper("move `d0, `s0", [r], [Frame.RV], NONE))))
 
 				| munchExp(T.TEMP t) = t

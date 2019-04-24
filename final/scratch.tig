@@ -17,6 +17,12 @@ let
 	var a15 := 1
 	var a16 := 1
 	var a17 := 13
+
 in
-	print(chr(a0+a1+a2+a3+a4+a5+a6+a7+a8+a9+a10+a11+a12+a13+a14+a15+a16+a17))
+	/* print(chr(a0+a1+a2+a3+a4+a5+a6+a7+a8+a9+a10+a11+a12+a13+a14+a15+a16+a17)) */
+	let
+		function x(a:int, b:int, c:int, d:int, e:int, f:int):int = a+b+c+d+e+f
+	in
+		print(chr(x(11,11,11,11,11,11))) /* should print B */
+	end
 end
