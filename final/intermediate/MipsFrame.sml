@@ -74,7 +74,6 @@ struct
 
 
   fun getFrameSize({name=_, formals=_, frameSize = fs, parentSize = _}) = !fs 
-    | getFrameSize _ = ErrorMsg.impossible "Frame does not have associated size."
 
   fun newFrame({name = name, formals = formals, parentSize = parentSize}) = 
     let 
@@ -143,9 +142,13 @@ struct
     (* View shift in frame arguments *)
     val viewShift = 
       let
-        fun makeStm(access, reg) = Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP reg)
+        val offset = ref 0
+        val (inRegs, inFrame) = List.partition (fn access => case access of InReg(_) => true | InFrame(_) => false) (rev (formals frame))
+        fun makeRegStm(access, reg) = Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP reg)
+        fun makeFrameStm(access, statements) = (offset := (!offset + wordSize);
+                                                Tree.MOVE(exp access (Tree.TEMP FP), exp InFrame(!offset - wordSize) (Tree.TEMP FP))::statements)
       in
-        map makeStm (ListPair.zip(formals frame, argregs))
+        (map makeStm (ListPair.zip(inRegs, argregs))) @ (foldl makeFrameStm [] inFrame)
       end
 
     fun shiftToMem (reg, (statements, accesses)) = 
@@ -172,7 +175,7 @@ struct
 											 jump=SOME []}]
 
 
-	fun procEntryExit3({name,formals,frameSize}, body) =
+	fun procEntryExit3({name,formals,frameSize,parentSize}, body) =
 		{prolog = Symbol.name name ^ ":\n" ^ 
               "sw $fp 0($sp)\n" ^ 
               "move $fp $sp\n" ^ 
