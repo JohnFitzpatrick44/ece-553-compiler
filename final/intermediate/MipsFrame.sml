@@ -45,7 +45,7 @@ struct
   val argregs = map (fn (s, r) => r) argregspairs
   val calleesaves = map (fn (s, r) => r) calleesavespairs
   val callersaves = map (fn (s, r) => r) callersavespairs
-  val calldefs = [FP, RV, RA]@callersaves
+  val calldefs = [RV, RA]@callersaves
 	
   val tempMap = 
     let
@@ -84,7 +84,7 @@ struct
             else (totalOffset := !totalOffset + wordSize; InFrame(offset - wordSize)::allocFormals(elist, offset - wordSize, unescaped) )
     in
       {name = name, formals = allocFormals(formals, 0, 0), frameSize = totalOffset}
-    end
+   end
 
   fun name({name = name, formals = _ , frameSize = _}) = name
 
@@ -106,14 +106,14 @@ struct
 
   fun intToString i = if i < 0 then "-"^(Int.toString (0-i)) else Int.toString i
 
-  fun fetchInstr(InFrame offset) = "lw `d0, " ^ (intToString offset) ^ "($fp)\n"
-  fun storeInstr(InFrame offset) = "sw `s0, " ^ (intToString offset) ^ "($fp)\n"
+  fun fetchInstr(InFrame offset) = "lw `d0, " ^ (intToString offset) ^ "(`s0)\n"
+  fun storeInstr(InFrame offset) = "sw `s0, " ^ (intToString offset) ^ "(`s1)\n"
 
   fun externalCall (s,args) = Tree.CALL(Tree.NAME(Temp.namedlabel ("tig_" ^ s)), args)
 
   
   (* Regalloc spills calleesaves if necessary *)
-  (*fun procEntryExit1 (frame, stm) = 
+  fun procEntryExit1 (frame, stm) = 
     let 
       val viewShift = 
         let
@@ -128,8 +128,9 @@ struct
       fun shiftToTemp (reg, access) = Tree.MOVE(Tree.TEMP reg, exp access (Tree.TEMP FP))
     in
       seq(viewShift @ (map shiftToMem regAccess) @ [stm] @ (map shiftToTemp regAccess))
-    end*)
+    end
 
+	(*
   fun procEntryExit1 (frame, stm) = let
 
     fun getOffset(access) = 
@@ -160,6 +161,7 @@ struct
   in
     seq(viewShift @ toMemStatements @ [stm] @ toTempStatements)
   end
+	*)
     
 	fun procEntryExit2 (frame, body) = 
 		body @ [Assem.OPER{assem="", 
@@ -167,17 +169,16 @@ struct
 											 dst=[], 
 											 jump=SOME []}]
 
-
 	fun procEntryExit3({name,formals,frameSize}, body) =
-		{prolog = Symbol.name name ^ ":\n" ^ 
-              "sw $fp 0($sp)\n" ^ 
-              "move $fp $sp\n" ^ 
-              "addiu $sp $sp -" ^ (Int.toString (!frameSize)) ^ "\n",
-		 body = body,
-		 epilog = "move $sp $fp\n" ^ 
-              "lw $fp 0($sp)\n" ^ 
-              "jr $ra\n"}	
-
+    { 
+      prolog=[Assem.LABEL{assem=(Symbol.name name) ^ ":\n", lab=name},
+              Assem.MOVE{assem="move `d0, `s0\n", dst=FP, src=SP},
+              Assem.OPER{assem="addiu `d0, `s0, -" ^ (Int.toString (!frameSize)) ^ "\n", dst=[SP], src=[SP], jump=NONE}],
+      body= body,
+      epilog=[Assem.MOVE{assem="move `d0, `s0\n", dst=SP, src=FP},
+              Assem.OPER{assem="lw `d0, 0(`s0)\n", dst=[FP], src=[SP], jump=NONE},
+              Assem.OPER{assem="jr `s0\n", dst=[], src=[RA], jump=NONE}]
+    }
 
   val tempMap = foldl (fn ((r, t), table) => Temp.Map.insert(table, t, r)) Temp.Map.empty (specialregspairs@argregspairs@calleesavespairs@callersavespairs)
 

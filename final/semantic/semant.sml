@@ -663,7 +663,7 @@ struct
 
   fun transProg (absyn: A.exp): Tr.frag list =
     let 
-      val mainLevel = Tr.newLevel({parent=Tr.outermost, name=Temp.namedlabel "main", formals=[]})
+      val mainLevel = Tr.newLevel({parent=Tr.outermost, name=Temp.namedlabel "tig_main", formals=[]})
       val translated = transExp(mainLevel, E.base_venv, E.base_tenv, absyn, [])
       val logs = Log.map(translated, fn {exp=progExp, ty=_} => Tr.procEntryExit{level=mainLevel, body=progExp})
     in

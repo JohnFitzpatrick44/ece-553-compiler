@@ -16,17 +16,24 @@ fun emitproc out (F.PROC{body,frame}) =
 	  val stms = Canon.linearize body
     val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
 
+    val _ = app (fn s => Printtree.printtree(TextIO.stdOut, s)) stms'
+
 	  val instrs = List.concat(map (MipsGen.codegen frame) stms') 
 		val instrs' = F.procEntryExit2(frame, instrs)
+    val (finalInstr, alloc) = RegAlloc.alloc(instrs', frame)
 
-		val {body=instrs'', prolog=prolog, epilog=epilog} = F.procEntryExit3(frame, instrs')
+		val _ = print "------------------- Original -------------------\n"
+    val format0 = Assem.format(Temp.makestring) 
+		val _ = app (fn i => print(format0 i)) instrs'
+		val _ = print "---------------- End Original -------------------\n"
+		val _ = print "---------------- Reconstructed -------------------\n"
+    val format0 = Assem.format(Temp.makestring) 
+		val _ = app (fn i => print(format0 i)) finalInstr
 
-    val (finalInstr, alloc) = RegAlloc.alloc(instrs'', frame)
+		val _ = print "---------------- End Reconstructed -------------------\n"
+
     val format0 = Assem.format(tempString alloc) 
-
-		val _ = TextIO.output(out, prolog)
-		val _ = app (fn i => TextIO.output(out, format0 i)) instrs''
-		val _ = TextIO.output(out, epilog)
+		val _ = app (fn i => TextIO.output(out, format0 i)) finalInstr
   in 
 		()
   end

@@ -212,8 +212,9 @@ struct
 
 
 				| munchExp (T.CALL(T.NAME lab, args)) =
-						result(fn r => emit(oper("jal " ^ (Symbol.name lab), Frame.calldefs, munchArgs(0, args), NONE)))
-
+						result(fn r => 
+										(emit(oper("jal " ^ (Symbol.name lab), Frame.calldefs, munchArgs(0, args), NONE)); 
+										 emit(oper("move `d0, `s0", [r], [Frame.RV], NONE))))
 
 				| munchExp(T.TEMP t) = t
 				| munchExp(T.ESEQ (stm,exp)) = (munchStm stm; munchExp exp)

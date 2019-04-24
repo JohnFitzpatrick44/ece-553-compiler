@@ -1,59 +1,82 @@
 .globl main
 .data
-L1307:
-.word 13
-.ascii "Hello World\n"
 .text
-main:
-sw $fp 0($sp)
-move $fp $sp
-addiu $sp $sp -40
-L1309:
+tig_main:
+move $fp, $sp
+addiu $sp, $sp, -16
+L1466:
 sw $a0, -4($fp)
-sw $ra, -40($fp)
-sw $s0, -36($fp)
-sw $s1, -32($fp)
-sw $s2, -28($fp)
-sw $s3, -24($fp)
-sw $s4, -20($fp)
-sw $s5, -16($fp)
-sw $s6, -12($fp)
-sw $s7, -8($fp)
+move $a0, $ra
+sw $a0, -8($fp)
+move $a0, $s0
+sw $a0, -12($fp)
+move $a0, $s1
+sw $a0, -16($fp)
+move $s2, $s2
+move $s3, $s3
+move $s4, $s4
+move $a3, $s5
+move $a2, $s6
+move $a1, $s7
+li $v0, 0
 li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-la $a0, L1307
+li $t9, 2
+li $t8, 3
+li $t7, 4
+li $t6, 5
+li $t5, 6
+li $t4, 7
+li $t3, 8
+li $t2, 9
+li $t1, 1
+li $t0, 1
+li $s7, 1
+li $s6, 1
+li $s5, 1
+li $s1, 1
+li $s0, 1
+li $ra, 13
+add $a0, $v0, $a0
+add $a0, $a0, $t9
+add $a0, $a0, $t8
+add $a0, $a0, $t7
+add $a0, $a0, $t6
+add $a0, $a0, $t5
+add $a0, $a0, $t4
+add $a0, $a0, $t3
+add $a0, $a0, $t2
+add $a0, $a0, $t1
+add $a0, $a0, $t0
+add $a0, $a0, $s7
+add $a0, $a0, $s6
+add $a0, $a0, $s5
+add $a0, $a0, $s1
+add $a0, $a0, $s0
+add $a0, $a0, $ra
+move $a0, $a0
+jal tig_chr
+move $a0, $v0
+move $a0, $a0
 move $a0, $a0
 jal tig_print
-move $v0, $0
-lw $ra, -40($fp)
-lw $s0, -36($fp)
-lw $s1, -32($fp)
-lw $s2, -28($fp)
-lw $s3, -24($fp)
-lw $s4, -20($fp)
-lw $s5, -16($fp)
-lw $s6, -12($fp)
-lw $s7, -8($fp)
-j L1308
-L1308:
-move $sp $fp
-lw $fp 0($sp)
+move $a0, $v0
+move $v0, $a0
+lw $a0, -8($fp)
+move $ra, $a0
+lw $a0, -12($fp)
+move $s0, $a0
+lw $a0, -16($fp)
+move $s1, $a0
+move $s2, $s2
+move $s3, $s3
+move $s4, $s4
+move $s5, $a3
+move $s6, $a2
+move $s7, $a1
+j L1465
+L1465:
+move $sp, $fp
+lw $fp, 0($sp)
 jr $ra
 # system calls for Tiger, when running on SPIM
 #
@@ -399,9 +422,9 @@ empty:
 	.space	3
 	.text
 	.align 4
-	.globl	man
-	.ent	man
-man:
+	.globl	main
+	.ent	main
+main:
 .LFB5:
 	.frame	$fp,64,$ra		# vars= 16, regs= 3/0, args= 0, extra= 16
 	.mask	0xd0000000,-16
@@ -460,7 +483,7 @@ man:
 	addu	$sp,$sp,64
 	j	$ra
 .LFE5:
-	.end	man
+	.end	main
 	.align 4
 	.globl	tig_ord
 	.ent	tig_ord

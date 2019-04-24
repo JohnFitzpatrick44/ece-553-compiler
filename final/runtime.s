@@ -342,9 +342,9 @@ empty:
 	.space	3
 	.text
 	.align 4
-	.globl	man
-	.ent	man
-man:
+	.globl	main
+	.ent	main
+main:
 .LFB5:
 	.frame	$fp,64,$ra		# vars= 16, regs= 3/0, args= 0, extra= 16
 	.mask	0xd0000000,-16
@@ -403,7 +403,7 @@ man:
 	addu	$sp,$sp,64
 	j	$ra
 .LFE5:
-	.end	man
+	.end	main
 	.align 4
 	.globl	tig_ord
 	.ent	tig_ord

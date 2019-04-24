@@ -113,11 +113,19 @@ fun interferenceGraph(flowgraph) =
 			| NONE => ErrorMsg.impossible "InterferenceGraph(): Invalid flow node given"
 
 		fun setStr s = "{" ^ (String.concatWith ", " (map Temp.makestring (LSet.listItems s))) ^ "}"
-		val q = LMap.foldri (fn (k, (s1, s2), str) => "--------------Node: " ^ (Temp.labelString k) ^ "---------------------\n" ^ 
-																									"Live In:  " ^ (setStr s1) ^ "\n" ^
-																									"Live Out: " ^ (setStr s2) ^ "\n" ^ str) 
-												"" liveinfo
-		(* val _ = print q *)
+		fun accInfo(n, str) = 
+			let
+				val lab = nodeID n
+				val SOME(s1, s2) = LMap.find(liveinfo, nodeID n)
+			in
+				"--------------Node: " ^ (Temp.labelString lab) ^ "---------------------\n" ^ 
+				"Instr: " ^ Flow.instr n ^ "\n" ^
+				"Live In:  " ^ (setStr s1) ^ "\n" ^
+				"Live Out: " ^ (setStr s2) ^ "\n" ^ str
+			end
+
+		val q = foldr accInfo "" flowNodes
+		val _ = print q
 		(* val _ = printGraph(finalIgraph) *)
 	in
 		(finalIgraph, liveOuts)

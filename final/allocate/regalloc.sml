@@ -7,8 +7,11 @@ struct
 	structure Graph = Liveness.Graph
 
 	(* val alloc : Assem.instr list * Frame.frame -> Assem.instr list * allocation *)
-	fun alloc (instrs, frame) = 
+	fun alloc (instrs', frame) = 
 		let
+			val {prolog=prolog, body=body, epilog=epilog} = Frame.procEntryExit3(frame, instrs')
+			val instrs = prolog @ body @ epilog
+
 			val (igraph, liveouts) = Liveness.interferenceGraph(MakeGraph.instrs2graph instrs)
 
 			fun count(elm, x :: rst) = if elm = x then 1 + count(elm, rst) else count(elm, rst)
@@ -22,8 +25,8 @@ struct
 				let
 					val t = Graph.getNodeID n
 					fun countDefUse(Assem.OPER{assem=_, dst=dst, src=src, jump=_})= count(t, dst) + count(t, src)
-						| countDefUse(Assem.LABEL{assem=_, lab=_}) = 0
-						| countDefUse(Assem.MOVE{assem=_, dst=dst, src=src}) = count(t, [dst]) + count(t, [src])
+					  | countDefUse(Assem.LABEL{assem=_, lab=_}) = 0
+					  | countDefUse(Assem.MOVE{assem=_, dst=dst, src=src}) = count(t, [dst]) + count(t, [src])
 				in
 					divAsReal(sum (map countDefUse instrs), length (Graph.adj n))
 				end
@@ -39,12 +42,13 @@ struct
 
 			fun rebuildFromSpill(instrs, spills) = 
 				let 
+					val _ = print ("rebuilding with " ^ (Int.toString (length spills)) ^ " spills\n")
 					fun augmentInstr(spill, instrs) = 
 						let
 							val access = Frame.allocLocal frame true (* true so that we get InFrame *)
 
-							fun genFetch t = Assem.OPER{assem = Frame.fetchInstr access, dst=[t], src=[], jump=NONE}
-							fun genStore t = Assem.OPER{assem = Frame.storeInstr access, dst=[], src=[t], jump=NONE}
+							fun genFetch t = Assem.OPER{assem = Frame.fetchInstr access, dst=[t], src=[Frame.FP], jump=NONE}
+							fun genStore t = Assem.OPER{assem = Frame.storeInstr access, dst=[], src=[t, Frame.FP], jump=NONE}
 
 							fun replace(t, x::rst) = if x = spill then t :: rst else x :: replace(t, rst)
 								| replace(t, []) = []
@@ -92,7 +96,7 @@ struct
 		in
 			if List.length spills = 0
 			then (instrs, allocated)
-			else alloc(rebuildFromSpill(instrs, spills), frame)
+			else alloc(rebuildFromSpill(body, spills), frame)
 		end
 
 end
