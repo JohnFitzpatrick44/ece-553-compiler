@@ -73,6 +73,8 @@ struct
     | _ => ErrorMsg.impossible "Empty sequence list received"
 
 
+  fun getFrameSize({name=_, formals=_, frameSize = fs, parentSize = _}) = !fs 
+    | getFrameSize _ = ErrorMsg.impossible "Frame does not have associated size."
 
   fun newFrame({name = name, formals = formals, parentSize = parentSize}) = 
     let 

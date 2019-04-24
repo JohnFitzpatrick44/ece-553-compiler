@@ -23,6 +23,8 @@ sig
 				{prolog: string, body: Assem.instr list, epilog: string}
   val externalCall: string * Tree.exp list -> Tree.exp
 
+  val getFrameSize: frame -> int
+
   val wordSize : int
 
   val ZERO: Temp.temp
