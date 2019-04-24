@@ -59,7 +59,7 @@ struct
   datatype access = InFrame of int
                   | InReg of Temp.temp
 
-  type frame = {name: Temp.label, formals: access list, frameSize: int ref}
+  type frame = {name: Temp.label, formals: access list, frameSize: int ref, parentSize: int option}
 
   val wordSize = 4
   val aRegs = 4
@@ -74,7 +74,7 @@ struct
 
 
 
-  fun newFrame({name = name, formals = formals}) = 
+  fun newFrame({name = name, formals = formals, parentSize = parentSize}) = 
     let 
       val totalOffset = ref 0
       fun allocFormals([], offset, unescaped) = []
@@ -83,17 +83,17 @@ struct
             then InReg(Temp.newtemp())::allocFormals(elist, offset, unescaped + 1)
             else (totalOffset := !totalOffset + wordSize; InFrame(offset - wordSize)::allocFormals(elist, offset - wordSize, unescaped) )
     in
-      {name = name, formals = allocFormals(formals, 0, 0), frameSize = totalOffset}
+      {name = name, formals = allocFormals(formals, 0, 0), frameSize = totalOffset, parentSize = parentSize}
     end
 
-  fun name({name = name, formals = _ , frameSize = _}) = name
+  fun name({name = name, formals = _ , frameSize = _, parentSize = _}) = name
 
-  fun formals({name = _, formals = formals , frameSize = _}) = formals
+  fun formals({name = _, formals = formals , frameSize = _, parentSize = _}) = formals
 
   fun allocLocal fr esc = 
     let 
-      fun incrementOffset {name=_, formals=_, frameSize = offset} = offset := !offset + wordSize
-      fun getOffset       {name=_, formals=_, frameSize = offset} = !offset
+      fun incrementOffset {name=_, formals=_, frameSize = offset, parentSize = _} = offset := !offset + wordSize
+      fun getOffset       {name=_, formals=_, frameSize = offset, parentSize = _} = !offset
     in 
       if esc
       then (incrementOffset fr; InFrame(0 - (getOffset fr)))
@@ -137,6 +137,8 @@ struct
         InFrame(offset) => offset
       | _ => ErrorMsg.impossible "Argument could not be allocated."
 
+
+    (* View shift in frame arguments *)
     val viewShift = 
       let
         fun makeStm(access, reg) = Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP reg)

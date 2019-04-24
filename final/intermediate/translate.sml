@@ -77,8 +77,14 @@ val outermost = Top
 
 fun clear() = frags := []
 
-fun newLevel {parent, name, formals} = 
-  Sub({parent = parent, frame = Frame.newFrame({name=name, formals=(true::formals)}), unique = ref ()})
+fun newLevel {parent, name, formals} = let
+  val parentSize = case parent of 
+    Sub({parent=_, frame={name=_, formals=_, frameSize=fs}, unique=_}) => SOME (!fs)
+  | _ => NONE
+in
+  Sub({parent = parent, frame = Frame.newFrame({name=name, formals=(true::formals), parentSize=parentSize}), unique = ref ()})
+end
+  
 
 fun formals level = 
   case level of
