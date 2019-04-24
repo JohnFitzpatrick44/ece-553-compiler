@@ -32,7 +32,7 @@ struct
 			  		val dst = if idx < (List.length Frame.argregs) then
 			  			(T.TEMP (List.nth (Frame.argregs, idx)))
 			  		else
-			  			T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST( (idx-(List.length Frame.argregs))*Frame.wordSize )))
+			  			T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST( ((List.length Frame.argregs)-idx-1)*Frame.wordSize )))
 			  	in
 			  		munchStm(T.MOVE(dst, src));
 			  		case dst of
@@ -214,7 +214,7 @@ struct
 
 
 				| munchExp (T.CALL(T.NAME lab, args)) =
-						result(fn r => emit(oper("jal " ^ (Symbol.name lab), Frame.calldefs, munchArgs(0, args), NONE)))
+						result(fn r => emit(oper("jal " ^ (Symbol.name lab), Frame.calldefs, munchArgs(0, rev args), NONE)))
 
 
 				| munchExp(T.TEMP t) = t

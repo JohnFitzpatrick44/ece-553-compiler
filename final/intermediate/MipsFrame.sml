@@ -77,12 +77,12 @@ struct
 
   fun newFrame({name = name, formals = formals, parentSize = parentSize}) = 
     let 
-      val totalOffset = ref 0
+      val totalOffset = ref  0
       fun allocFormals([], offset, unescaped) = []
         | allocFormals(escape::elist, offset, unescaped) = 
             if ((not escape) andalso (unescaped < aRegs))
             then InReg(Temp.newtemp())::allocFormals(elist, offset, unescaped + 1)
-            else (totalOffset := !totalOffset + wordSize; InFrame(offset - wordSize)::allocFormals(elist, offset - wordSize, unescaped) )
+            else (totalOffset := !totalOffset + wordSize; InReg(Temp.newtemp())::allocFormals(elist, offset - wordSize, unescaped) )
     in
       {name = name, formals = allocFormals(formals, 0, 0), frameSize = totalOffset, parentSize = parentSize}
     end
@@ -143,12 +143,12 @@ struct
     val viewShift = 
       let
         val offset = ref 0
-        val (inRegs, inFrame) = List.partition (fn access => case access of InReg(_) => true | InFrame(_) => false) (rev (formals frame))
+        val (inRegs, inFrame) = List.partition (fn access => case access of InReg(_) => true | InFrame(_) => false) (formals frame)
         fun makeRegStm(access, reg) = Tree.MOVE(exp access (Tree.TEMP FP), Tree.TEMP reg)
-        fun makeFrameStm(access, statements) = (offset := (!offset + wordSize);
-                                                Tree.MOVE(exp access (Tree.TEMP FP), exp InFrame(!offset - wordSize) (Tree.TEMP FP))::statements)
+        fun makeFrameStm(access, statements) = (offset := (!offset - wordSize);
+                                                Tree.MOVE(exp access (Tree.TEMP FP), exp (InFrame(!offset)) (Tree.TEMP FP))::statements)
       in
-        (map makeStm (ListPair.zip(inRegs, argregs))) @ (foldl makeFrameStm [] inFrame)
+        (map makeRegStm (ListPair.zip(inRegs, argregs))) @ (foldl makeFrameStm [] inFrame)
       end
 
     fun shiftToMem (reg, (statements, accesses)) = 

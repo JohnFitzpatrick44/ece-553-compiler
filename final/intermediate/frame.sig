@@ -29,6 +29,7 @@ sig
 
   val ZERO: Temp.temp
   val FP : Temp.temp
+  val SP : Temp.temp
   val RV : Temp.temp
 
   datatype frag = PROC of {body: Tree.stm, frame: frame}
