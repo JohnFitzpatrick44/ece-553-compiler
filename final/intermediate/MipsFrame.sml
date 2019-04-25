@@ -77,7 +77,8 @@ struct
 
   fun newFrame({name = name, formals = formals, parentSize = parentSize}) = 
     let 
-      val totalOffset = ref  0
+      val totalOffset = ref 4 (* save a space for previous fp, which isn't necessarily the same as the static link
+                                 might cause problems with static links because translate.sml seems to rely on the assumption that static links are at 0(FP) *)
       fun allocFormals([], offset, unescaped) = []
         | allocFormals(escape::elist, offset, unescaped) = 
             if ((not escape) andalso (unescaped < aRegs))
@@ -178,21 +179,20 @@ struct
   end
   *)
     
-	fun procEntryExit2 (frame, body) = 
-		body @ [Assem.OPER{assem="", 
-										 	 src=[ZERO, RA, SP, FP, RV] @ calleesaves, 
-											 dst=[], 
-											 jump=SOME []}]
+	fun procEntryExit2 (frame, body) = body (* Deprecated: merged with procEntryExit3 epilog *)
 
 	fun procEntryExit3({name,formals,frameSize,parentSize}, body) =
-      { 
-        prolog=[Assem.LABEL{assem=(Symbol.name name) ^ ":\n", lab=name},
-                Assem.MOVE{assem="move `d0, `s0\n", dst=FP, src=SP},
-                Assem.OPER{assem="addiu `d0, `s0, -" ^ (Int.toString (!frameSize)) ^ "\n", dst=[SP], src=[SP], jump=NONE}],
-        body= body,
-        epilog=[Assem.MOVE{assem="move `d0, `s0\n", dst=SP, src=FP},
-                Assem.OPER{assem="jr `s0\n", dst=[], src=[RA], jump=NONE}]
-      }
+    {
+      prolog=[Assem.LABEL{assem=(Symbol.name name) ^ ":\n", lab=name},
+              Assem.OPER{assem="sw `s0, 0(`s1)\n", dst=[], src=[FP, SP], jump=NONE},
+              Assem.MOVE{assem="move `d0, `s0\n", dst=FP, src=SP},
+              Assem.OPER{assem="addiu `d0, `s0, -" ^ (Int.toString (!frameSize+4)) ^ "\n", dst=[SP], src=[SP], jump=NONE}],
+      body= body,
+      epilog=[Assem.OPER{assem="", src=[ZERO, RA, SP, RV] @ calleesaves, dst=[], jump=NONE},
+              Assem.MOVE{assem="move `d0, `s0\n", dst=SP, src=FP},
+              Assem.OPER{assem="lw `d0, 0(`s0)\n", dst=[FP], src=[SP], jump=NONE},
+              Assem.OPER{assem="jr `s0\n", dst=[], src=[RA], jump=NONE}]
+    }
 
   val tempMap = foldl (fn ((r, t), table) => Temp.Map.insert(table, t, r)) Temp.Map.empty (specialregspairs@argregspairs@calleesavespairs@callersavespairs)
 

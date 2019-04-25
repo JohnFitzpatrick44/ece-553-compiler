@@ -42,7 +42,7 @@ struct
 
 			fun rebuildFromSpill(instrs, spills) = 
 				let 
-					val _ = print ("rebuilding with " ^ (Int.toString (length spills)) ^ " spills\n")
+					val _ = print ("rebuilding with " ^ (Int.toString (length spills)) ^ " spills: " ^ (String.concatWith ", " (map Temp.makestring spills)) ^ "\n")
 					fun augmentInstr(spill, instrs) = 
 						let
 							val access = Frame.allocLocal frame true (* true so that we get InFrame *)

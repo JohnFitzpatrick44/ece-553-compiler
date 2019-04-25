@@ -2,12 +2,13 @@
 .data
 .text
 tig_main:
+sw $fp, 0($sp)
 move $fp, $sp
-addiu $sp, $sp, -8
-L2843:
+addiu $sp, $sp, -16
+L7291:
 move $a0, $a0
 move $a0, $ra
-sw $a0, -8($fp)
+sw $a0, -12($fp)
 move $s0, $s0
 move $s1, $s1
 move $s2, $s2
@@ -47,7 +48,7 @@ sw $ra, -4($sp)
 li $ra, 11
 sw $ra, -8($sp)
 sw $fp, -12($sp)
-jal L2841
+jal L7289
 move $a0, $v0
 move $a0, $a0
 move $a0, $a0
@@ -58,7 +59,7 @@ move $a0, $a0
 jal tig_print
 move $a0, $v0
 move $v0, $a0
-lw $a0, -8($fp)
+lw $a0, -12($fp)
 move $ra, $a0
 move $s0, $s0
 move $s1, $s1
@@ -68,14 +69,16 @@ move $s4, $s4
 move $s5, $s5
 move $s6, $s6
 move $s7, $s7
-j L2842
-L2842:
+j L7290
+L7290:
 move $sp, $fp
+lw $fp, 0($sp)
 jr $ra
-L2841:
+L7289:
+sw $fp, 0($sp)
 move $fp, $sp
-addiu $sp, $sp, -12
-L2981:
+addiu $sp, $sp, -20
+L7433:
 move $a0, $a0
 move $a1, $a1
 move $a2, $a2
@@ -107,9 +110,10 @@ move $s4, $s4
 move $s5, $s5
 move $s6, $s6
 move $s7, $s7
-j L2980
-L2980:
+j L7432
+L7432:
 move $sp, $fp
+lw $fp, 0($sp)
 jr $ra
 # system calls for Tiger, when running on SPIM
 #
