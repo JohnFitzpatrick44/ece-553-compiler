@@ -148,7 +148,7 @@ fun subscriptVar (addr, index) =
                                      T.CONST (Frame.wordSize))))),
         T.JUMP (T.NAME exit, [exit]),
         T.LABEL invalid,
-        T.MOVE(T.TEMP r, Frame.externalCall("arrayOutOfBounds", [])),
+        (*T.MOVE(T.TEMP r, Frame.externalCall("arrayOutOfBounds", [])),*)
         T.LABEL exit], 
       T.TEMP r))
   end
@@ -292,11 +292,10 @@ fun arrayExp(sizeExp, initExp) =
   let
     val r = Temp.newtemp()
     val size = Temp.newtemp()
-	  val actualSizeTemp = Temp.newtemp()
 
 		val putToSizeTemp = T.MOVE(T.TEMP size, unEx sizeExp)
     (*val putToActualSizeTemp = T.MOVE(T.TEMP actualSizeTemp, T.BINOP(T.PLUS, T.TEMP size, T.CONST 1))*)
-    val allocArray = T.MOVE(T.TEMP r, Frame.externalCall("initArray", [T.TEMP actualSizeTemp, unEx initExp]))
+    val allocArray = T.MOVE(T.TEMP r, Frame.externalCall("initArray", [T.TEMP size, unEx initExp]))
     (*val putSizeInArr = T.MOVE(T.MEM(T.TEMP r), T.TEMP size)*)
   in
     Ex(T.ESEQ(seq[
