@@ -143,12 +143,10 @@ fun subscriptVar (addr, index) =
         T.MOVE(T.TEMP r,
                T.MEM(T.BINOP(T.PLUS, 
                              unEx addr, 
-                             T.BINOP(T.MUL, 
-                                     unEx index, 
-                                     T.CONST (Frame.wordSize))))),
+                             unEx index))),
         T.JUMP (T.NAME exit, [exit]),
         T.LABEL invalid,
-        (*T.MOVE(T.TEMP r, Frame.externalCall("arrayOutOfBounds", [])),*)
+        T.BINOP (T.PLUS, T.CONT 15, T.CONST 34),
         T.LABEL exit], 
       T.TEMP r))
   end
@@ -304,7 +302,8 @@ fun arrayExp(sizeExp, initExp) =
         allocArray
         (*putSizeInArr*)
       ],
-      T.BINOP(T.PLUS, T.TEMP r, T.CONST Frame.wordSize))) (* give pointer to a[1] instead of a[0]*)
+    T.TEMP r))
+      (*T.BINOP(T.PLUS, T.TEMP r, T.CONST Frame.wordSize))) ( give pointer to a[1] instead of a[0]*)
   end
 
 fun callExp (label, useLevel, defLevel, args) = 
