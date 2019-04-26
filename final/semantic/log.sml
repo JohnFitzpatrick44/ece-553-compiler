@@ -33,4 +33,7 @@ struct
 
   fun report(LOGGED(_, logs): 'a log): unit =
     foldr (fn ((pos, msg), acc) => ErrorMsg.error pos msg) () logs
+  
+  fun isLogEmpty(LOGGED(_, [])) = true
+    | isLogEmpty(LOGGED(_, _)) = false
 end
