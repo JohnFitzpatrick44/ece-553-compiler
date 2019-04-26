@@ -163,11 +163,24 @@ fun subscriptVar (addr, index) =
 
 
 fun fieldVar (addr, offset) = 
-  Ex(T.MEM(T.BINOP(T.PLUS, 
-                   unEx addr, 
-                   T.BINOP(T.MUL, 
-                           T.CONST(offset), 
-                           T.CONST (Frame.wordSize)))))
+  let
+    val valid = Temp.newlabel()
+    val invalid = Temp.newlabel()
+    val memExp = T.MEM(T.BINOP(T.PLUS, 
+                               unEx addr, 
+                               T.BINOP(T.MUL, 
+                                       T.CONST(offset), 
+                                       T.CONST (Frame.wordSize))))
+  in
+    (* nil checking (?) *)
+    Ex(T.ESEQ(seq [
+        T.CJUMP (T.NE, unEx addr, T.CONST 0, valid, invalid),
+        T.LABEL invalid,
+        T.EXP(Frame.externalCall("print", [unEx (strLit "Cannot access nil record.\n")])),
+        T.EXP(Frame.externalCall("exit", [T.CONST 1])),
+        T.LABEL valid], 
+      memExp))
+  end
 
 
 

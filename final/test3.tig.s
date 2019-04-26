@@ -1,20 +1,20 @@
 .globl main
 .data
-L246:
-.word 1
-.ascii "c"
-L245:
-.word 10
-.ascii "Somebody\n"
-L244:
+L669:
+.word 3
+.ascii "Who"
+L668:
 .word 8
-.ascii "Nobody\n"
+.ascii "Somebody"
+L667:
+.word 6
+.ascii "Nobody"
 .text
 tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -16
-L248:
+L671:
 move $a0, $a0
 move $a0, $ra
 sw $a0, -12($fp)
@@ -33,48 +33,27 @@ move $a0, $v0
 move $a0, $a0
 li $ra, 1000
 sw $ra, 0($a0)
-la $ra, L244
+la $ra, L667
 sw $ra, 4($a0)
 move $s5, $a0
-li $a0, 4
-add $a0, $s5, $a0
-lw $a0, 0($a0)
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-la $ra, L245
+li $s6, 0
+la $ra, L668
 li $a0, 4
 add $a0, $s5, $a0
 sw $ra, 0($a0)
 li $a0, 4
-add $a0, $s5, $a0
+add $a0, $s6, $a0
 lw $a0, 0($a0)
 move $a0, $a0
 jal tig_print
 move $a0, $v0
-li $ra, 70
-li $a0, 0
-add $a0, $s5, $a0
+la $ra, L669
+li $a0, 4
+add $a0, $s6, $a0
 sw $ra, 0($a0)
-li $a0, 0
-add $a0, $s5, $a0
+li $a0, 4
+add $a0, $s6, $a0
 lw $a0, 0($a0)
-move $a0, $a0
-jal tig_chr
-move $a0, $v0
-move $a0, $a0
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-la $a0, L246
-move $a0, $a0
-jal tig_ord
-move $a0, $v0
-move $a0, $a0
-move $a0, $a0
-jal tig_chr
-move $a0, $v0
-move $a0, $a0
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -89,8 +68,8 @@ move $s4, $s4
 move $s5, $a3
 move $s6, $a2
 move $s7, $a1
-j L247
-L247:
+j L670
+L670:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra
