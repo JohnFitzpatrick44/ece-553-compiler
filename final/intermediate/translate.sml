@@ -143,7 +143,9 @@ fun subscriptVar (addr, index) =
         T.MOVE(T.TEMP r,
                T.MEM(T.BINOP(T.PLUS, 
                              unEx addr, 
-                             unEx index))),
+                             T.BINOP(T.MUL, 
+                                     unEx index,
+                                     Frame.wordSize)))),
         T.JUMP (T.NAME exit, [exit]),
         T.LABEL invalid,
         (*Need invalid array code*)
