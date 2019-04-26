@@ -111,7 +111,7 @@ struct
   fun fetchInstr(InFrame offset) = "lw `d0, " ^ (intToString offset) ^ "(`s0)\n"
   fun storeInstr(InFrame offset) = "sw `s0, " ^ (intToString offset) ^ "(`s1)\n"
 
-  fun externalCall (s,args) = Tree.CALL(Tree.NAME(Temp.namedlabel ("tig_" ^ s)), args)
+  fun externalCall (s,args) = Tree.CALL(Tree.NAME(Temp.namedlabel ("tig_" ^ s)), rev args)
 
   
   (* Regalloc spills calleesaves if necessary *)

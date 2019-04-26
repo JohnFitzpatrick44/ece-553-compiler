@@ -118,6 +118,17 @@ fun printResult outstream =
   (print ("RV: " ^ (Temp.makestring Frame.RV) ^ "\n");
    List.app (fn frag => Frame.printFrag(outstream, frag)) (!frags))
 
+
+fun strLit s = 
+  let 
+    val l = Temp.newlabel()
+  in 
+    frags := (Frame.STRING(l, s))::(!frags);
+    Ex(T.NAME l)
+  end
+
+
+
 (* Variables *)
 fun simpleVar (dec, useLevel) = 
   let
@@ -129,38 +140,47 @@ fun simpleVar (dec, useLevel) =
 fun subscriptVar (addr, index) =
   let
      val valid = Temp.newlabel()
-     val good = Temp.newlabel()
      val invalid = Temp.newlabel()
      val exit = Temp.newlabel()
-     val r = Temp.newtemp()
      val sizeExp = T.MEM(T.BINOP(T.MINUS, unEx addr, T.CONST Frame.wordSize))
+     val memExp = T.MEM(T.BINOP(T.PLUS, 
+                                unEx addr, 
+                                T.BINOP(T.MUL, 
+                                        unEx index,
+                                        T.CONST Frame.wordSize)))
    in 
     Ex(T.ESEQ(seq [
         T.CJUMP (T.LT, unEx index, sizeExp, valid, invalid),
         T.LABEL valid,
-        T.CJUMP (T.GE, unEx index, T.CONST 0, good, invalid),
-        T.LABEL good,
-        T.MOVE(T.TEMP r,
-               T.MEM(T.BINOP(T.PLUS, 
-                             unEx addr, 
-                             T.BINOP(T.MUL, 
-                                     unEx index, 
-                                     T.CONST (Frame.wordSize))))),
-        T.JUMP (T.NAME exit, [exit]),
+        T.CJUMP (T.LT, unEx index, T.CONST 0, invalid, exit),
         T.LABEL invalid,
-        T.MOVE(T.TEMP r, Frame.externalCall("arrayOutOfBounds", [])),
+        T.EXP(Frame.externalCall("print", [unEx (strLit "Array index out of bounds.\n")])),
+        T.EXP(Frame.externalCall("exit", [T.CONST 1])),
         T.LABEL exit], 
-      T.TEMP r))
+      memExp))
   end
 
 
 
 fun fieldVar (addr, offset) = 
-  Ex(T.MEM(T.BINOP(T.PLUS, 
-                   unEx addr, 
-                   T.BINOP(T.MUL, 
-                           T.CONST(offset), 
-                           T.CONST (Frame.wordSize)))))
+  let
+    val valid = Temp.newlabel()
+    val invalid = Temp.newlabel()
+    val memExp = T.MEM(T.BINOP(T.PLUS, 
+                               unEx addr, 
+                               T.BINOP(T.MUL, 
+                                       T.CONST(offset), 
+                                       T.CONST (Frame.wordSize))))
+  in
+    (* nil checking (?) *)
+    Ex(T.ESEQ(seq [
+        T.CJUMP (T.NE, unEx addr, T.CONST 0, valid, invalid),
+        T.LABEL invalid,
+        T.EXP(Frame.externalCall("print", [unEx (strLit "Cannot access nil record.\n")])),
+        T.EXP(Frame.externalCall("exit", [T.CONST 1])),
+        T.LABEL valid], 
+      memExp))
+  end
 
 
 
@@ -276,7 +296,7 @@ fun recordExp(fields) =
   let
     val len = length fields
     val r = Temp.newtemp()
-    val allocRecord = T.MOVE(T.TEMP r, Frame.externalCall("malloc", [T.CONST (len * Frame.wordSize)]))
+    val allocRecord = T.MOVE(T.TEMP r, Frame.externalCall("allocRecord", [T.CONST (len * Frame.wordSize)]))
     fun allocFields ([], index) = []
       | allocFields (exp::explist, index) = (
           T.MOVE(T.MEM(T.BINOP(T.PLUS, 
@@ -292,21 +312,19 @@ fun arrayExp(sizeExp, initExp) =
   let
     val r = Temp.newtemp()
     val size = Temp.newtemp()
-	  val actualSizeTemp = Temp.newtemp()
 
 		val putToSizeTemp = T.MOVE(T.TEMP size, unEx sizeExp)
-    val putToActualSizeTemp = T.MOVE(T.TEMP actualSizeTemp, T.BINOP(T.PLUS, T.TEMP size, T.CONST 1))
-    val allocArray = T.MOVE(T.TEMP r, Frame.externalCall("initArray", 
-					[T.BINOP(T.MUL, T.TEMP actualSizeTemp, T.CONST Frame.wordSize), unEx initExp]))
-    val putSizeInArr = T.MOVE(T.MEM(T.TEMP r), T.TEMP size)
+    (*val putToActualSizeTemp = T.MOVE(T.TEMP actualSizeTemp, T.BINOP(T.PLUS, T.TEMP size, T.CONST 1))*)
+    val allocArray = T.MOVE(T.TEMP r, Frame.externalCall("initArray", [T.TEMP size, unEx initExp]))
+    (*val putSizeInArr = T.MOVE(T.MEM(T.TEMP r), T.TEMP size)*)
   in
     Ex(T.ESEQ(seq[
         putToSizeTemp,
-        putToActualSizeTemp,
-        allocArray,
-        putSizeInArr
+        (*putToActualSizeTemp,*)
+        allocArray
+        (*putSizeInArr*)
       ],
-      T.BINOP(T.PLUS, T.TEMP r, T.CONST Frame.wordSize))) (* give pointer to a[1] instead of a[0]*)
+    T.BINOP(T.PLUS, T.TEMP r, T.CONST Frame.wordSize))) (* give pointer to a[1] instead of a[0]*)
   end
 
 fun callExp (label, useLevel, defLevel, args) = 
@@ -321,15 +339,6 @@ fun callExp (label, useLevel, defLevel, args) =
 fun intLit n = Ex(T.CONST n)
 
 fun nilLit() = Ex(T.CONST 0)
-
-fun strLit s = 
-  let 
-    val l = Temp.newlabel()
-  in 
-    frags := (Frame.STRING(l, s))::(!frags);
-    Ex(T.NAME l)
-  end
-
 
 fun stringEQ (e1, e2) =  Ex(Frame.externalCall("stringEqual", [unEx e1,unEx e2]))
 
