@@ -1,11 +1,14 @@
 .globl main
 .data
+L313:
+.word 26
+.ascii "Array index out of bounds."
 .text
 tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -16
-L107:
+L315:
 move $a0, $a0
 move $a0, $ra
 sw $a0, -12($fp)
@@ -19,26 +22,30 @@ move $a3, $s6
 move $a2, $s7
 li $a0, 10
 move $a0, $a0
-li $a1, 70
+li $a1, 0
 move $a1, $a1
 jal tig_initArray
 move $a0, $v0
 move $a0, $a0
 addi $a0, $a0, 4
-move $a0, $a0
-li $ra, 3
-lw $a1, -4($a0)
-blt $ra, $a1, L102
-L104:
-L105:
-move $a0, $s6
-jal tig_chr
-move $a0, $v0
-move $a0, $a0
+move $a1, $a0
+li $ra, 12
+lw $a0, -4($a1)
+blt $ra, $a0, L309
+L311:
+la $a0, L313
 move $a0, $a0
 jal tig_print
 move $a0, $v0
-move $v0, $a0
+move $a0, $a0
+li $a0, 1
+move $a0, $a0
+jal tig_exit
+move $a0, $v0
+move $a0, $a0
+L312:
+li $a0, 70
+move $v0, $a1
 lw $a0, -12($fp)
 move $ra, $a0
 move $s0, $s0
@@ -49,17 +56,17 @@ move $s4, $s4
 move $s5, $s5
 move $s6, $a3
 move $s7, $a2
-j L106
-L102:
-li $a1, 3
-bltz $a1, L104
-L103:
-li $a1, 12
-add $a0, $a0, $a1
+j L314
+L309:
+li $a0, 12
+bltz $a0, L311
+L310:
+li $a0, 48
+add $a0, $a1, $a0
 lw $a0, 0($a0)
-move $s6, $a0
-j L105
-L106:
+move $a0, $a0
+j L312
+L314:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra

@@ -140,29 +140,24 @@ fun simpleVar (dec, useLevel) =
 fun subscriptVar (addr, index) =
   let
      val valid = Temp.newlabel()
-     val good = Temp.newlabel()
      val invalid = Temp.newlabel()
      val exit = Temp.newlabel()
-     val r = Temp.newtemp()
      val sizeExp = T.MEM(T.BINOP(T.MINUS, unEx addr, T.CONST Frame.wordSize))
+     val memExp = T.MEM(T.BINOP(T.PLUS, 
+                                unEx addr, 
+                                T.BINOP(T.MUL, 
+                                        unEx index,
+                                        T.CONST Frame.wordSize)))
    in 
     Ex(T.ESEQ(seq [
         T.CJUMP (T.LT, unEx index, sizeExp, valid, invalid),
         T.LABEL valid,
-        T.CJUMP (T.LT, unEx index, T.CONST 0, invalid, good),
-        T.LABEL good,
-        T.MOVE(T.TEMP r,
-               T.MEM(T.BINOP(T.PLUS, 
-                             unEx addr, 
-                             T.BINOP(T.MUL, 
-                                     unEx index,
-                                     T.CONST Frame.wordSize)))),
-        T.JUMP (T.NAME exit, [exit]),
+        T.CJUMP (T.LT, unEx index, T.CONST 0, invalid, exit),
         T.LABEL invalid,
-        T.MOVE(T.TEMP r, Frame.externalCall("print", [unEx (strLit "Array index out of bounds.")])),
-        T.MOVE(T.TEMP r, Frame.externalCall("exit", [T.CONST 1])),
+        T.EXP(Frame.externalCall("print", [unEx (strLit "Array index out of bounds.\n")])),
+        T.EXP(Frame.externalCall("exit", [T.CONST 1])),
         T.LABEL exit], 
-      T.TEMP r))
+      memExp))
   end
 
 
