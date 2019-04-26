@@ -118,6 +118,17 @@ fun printResult outstream =
   (print ("RV: " ^ (Temp.makestring Frame.RV) ^ "\n");
    List.app (fn frag => Frame.printFrag(outstream, frag)) (!frags))
 
+
+fun strLit s = 
+  let 
+    val l = Temp.newlabel()
+  in 
+    frags := (Frame.STRING(l, s))::(!frags);
+    Ex(T.NAME l)
+  end
+
+
+
 (* Variables *)
 fun simpleVar (dec, useLevel) = 
   let
@@ -320,15 +331,6 @@ fun callExp (label, useLevel, defLevel, args) =
 fun intLit n = Ex(T.CONST n)
 
 fun nilLit() = Ex(T.CONST 0)
-
-fun strLit s = 
-  let 
-    val l = Temp.newlabel()
-  in 
-    frags := (Frame.STRING(l, s))::(!frags);
-    Ex(T.NAME l)
-  end
-
 
 fun stringEQ (e1, e2) =  Ex(Frame.externalCall("stringEqual", [unEx e1,unEx e2]))
 
