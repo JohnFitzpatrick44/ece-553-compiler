@@ -138,8 +138,7 @@ fun subscriptVar (addr, index) =
     Ex(T.ESEQ(seq [
         T.CJUMP (T.LT, unEx index, sizeExp, valid, invalid),
         T.LABEL valid,
-        T.CJUMP (T.GE, unEx index, T.CONST 0, invalid, good),
-          (* switched for some reason??? *)
+        T.CJUMP (T.LT, unEx index, T.CONST 0, invalid, good),
         T.LABEL good,
         T.MOVE(T.TEMP r,
                T.MEM(T.BINOP(T.PLUS, 
@@ -303,8 +302,7 @@ fun arrayExp(sizeExp, initExp) =
         allocArray
         (*putSizeInArr*)
       ],
-    T.TEMP r))
-      (*T.BINOP(T.PLUS, T.TEMP r, T.CONST Frame.wordSize))) ( give pointer to a[1] instead of a[0]*)
+    T.BINOP(T.PLUS, T.TEMP r, T.CONST Frame.wordSize))) (* give pointer to a[1] instead of a[0]*)
   end
 
 fun callExp (label, useLevel, defLevel, args) = 
