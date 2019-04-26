@@ -145,7 +145,7 @@ fun subscriptVar (addr, index) =
                              unEx addr, 
                              T.BINOP(T.MUL, 
                                      unEx index,
-                                     Frame.wordSize)))),
+                                     T.CONST Frame.wordSize)))),
         T.JUMP (T.NAME exit, [exit]),
         T.LABEL invalid,
         (*Need invalid array code*)
