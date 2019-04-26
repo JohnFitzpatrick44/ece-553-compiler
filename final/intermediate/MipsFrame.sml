@@ -54,7 +54,8 @@ struct
       foldl add Temp.Map.empty (specialregspairs@argregspairs@calleesavespairs@callersavespairs)
     end
 
-	val registers = map (fn (s, r) => s) (specialregspairs @ argregspairs @ calleesavespairs @ callersavespairs)
+	val registers = map (fn (s, r) => s) (callersavespairs @ calleesavespairs @ argregspairs @ specialregspairs)
+  val nonZeroRegisters = map (fn (s, r) => s) (callersavespairs @ calleesavespairs @ argregspairs @ [("$ra", RA), ("$v0", RV), ("$sp", SP), ("$fp", FP)])
 
   datatype access = InFrame of int
                   | InReg of Temp.temp
