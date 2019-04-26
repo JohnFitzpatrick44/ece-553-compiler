@@ -1,11 +1,17 @@
 .globl main
 .data
+L1:
+.word 8
+.ascii "Somebody"
+L0:
+.word 6
+.ascii "Nobody"
 .text
 tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -16
-L107:
+L3:
 move $a0, $a0
 move $a0, $ra
 sw $a0, -12($fp)
@@ -14,30 +20,23 @@ move $s1, $s1
 move $s2, $s2
 move $s3, $s3
 move $s4, $s4
-move $s5, $s5
-move $a3, $s6
-move $a2, $s7
-li $a0, 10
+move $a3, $s5
+move $a2, $s6
+move $a1, $s7
+li $a0, 8
 move $a0, $a0
-li $a1, 70
-move $a1, $a1
-jal tig_initArray
+jal tig_malloc
 move $a0, $v0
 move $a0, $a0
-addi $a0, $a0, 4
+li $ra, 1000
+sw $ra, 0($a0)
+la $ra, L0
+sw $ra, 4($a0)
 move $a0, $a0
-li $ra, 3
-lw $a1, -4($a0)
-blt $ra, $a1, L102
-L104:
-L105:
-move $a0, $s6
-jal tig_chr
-move $a0, $v0
-move $a0, $a0
-move $a0, $a0
-jal tig_print
-move $a0, $v0
+la $s5, L1
+li $ra, 4
+add $ra, $a0, $ra
+sw $s5, 0($ra)
 move $v0, $a0
 lw $a0, -12($fp)
 move $ra, $a0
@@ -46,20 +45,11 @@ move $s1, $s1
 move $s2, $s2
 move $s3, $s3
 move $s4, $s4
-move $s5, $s5
-move $s6, $a3
-move $s7, $a2
-j L106
-L102:
-li $a1, 3
-bltz $a1, L104
-L103:
-li $a1, 12
-add $a0, $a0, $a1
-lw $a0, 0($a0)
-move $s6, $a0
-j L105
-L106:
+move $s5, $a3
+move $s6, $a2
+move $s7, $a1
+j L2
+L2:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra
@@ -67,10 +57,10 @@ jr $ra
 #
 # $Id: sysspim.s,v 1.1 2002/08/25 05:06:41 shivers Exp $
 
-	.globl malloc
-	.ent malloc
+	.globl tig_malloc
+	.ent tig_malloc
 	.text
-malloc:
+tig_malloc:
 	# round up the requested amount to a multiple of 4
 	add $a0, $a0, 3
 	srl $a0, $a0, 2
@@ -82,7 +72,7 @@ malloc:
 	
 	j $ra
 
-	.end malloc
+	.end tig_malloc
 
 	
 
@@ -164,7 +154,7 @@ tig_initArray:
 	move	$v1,$v0
 	sll	$v0,$v1,2
 	move	$a0,$v0
-	la	$t9,malloc
+	la	$t9,tig_malloc
 	jal	$ra,$t9
 	sw	$v0,28($fp)
 	lw	$v0,28($fp)
@@ -225,7 +215,7 @@ tig_allocRecord:
 	.set	at
 	sw	$a0,16($fp)
 	lw	$a0,16($fp)
-	la	$t9,malloc
+	la	$t9,tig_malloc
 	jal	$ra,$t9
 	move	$v1,$v0
 	move	$v0,$v1
@@ -653,7 +643,7 @@ tig_substring:
 	lw	$v1,24($fp)
 	addu	$v0,$v1,4
 	move	$a0,$v0
-	la	$t9,malloc
+	la	$t9,tig_malloc
 	jal	$ra,$t9
 	sw	$v0,28($fp)
 	lw	$v0,28($fp)
@@ -742,7 +732,7 @@ tig_concat:
 	lw	$v1,28($fp)
 	addu	$v0,$v1,4
 	move	$a0,$v0
-	la	$t9,malloc
+	la	$t9,tig_malloc
 	jal	$ra,$t9
 	sw	$v0,32($fp)
 	lw	$v0,32($fp)

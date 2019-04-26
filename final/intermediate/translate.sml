@@ -276,7 +276,7 @@ fun recordExp(fields) =
   let
     val len = length fields
     val r = Temp.newtemp()
-    val allocRecord = T.MOVE(T.TEMP r, Frame.externalCall("malloc", [T.CONST (len * Frame.wordSize)]))
+    val allocRecord = T.MOVE(T.TEMP r, Frame.externalCall("tig_allocRecord", [T.CONST (len * Frame.wordSize)]))
     fun allocFields ([], index) = []
       | allocFields (exp::explist, index) = (
           T.MOVE(T.MEM(T.BINOP(T.PLUS, 
