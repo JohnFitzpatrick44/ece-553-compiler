@@ -148,7 +148,8 @@ fun subscriptVar (addr, index) =
                                      T.CONST Frame.wordSize)))),
         T.JUMP (T.NAME exit, [exit]),
         T.LABEL invalid,
-        (*Need invalid array code*)
+        T.MOVE(T.TEMP r, Frame.externalCall("print", [strLit "Array index out of bounds."])),
+        T.MOVE(T.TEMP r, Frame.externalCall("exit", [T.CONST 1])),
         T.LABEL exit], 
       T.TEMP r))
   end
