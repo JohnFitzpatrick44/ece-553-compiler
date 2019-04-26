@@ -25,7 +25,7 @@ move $a2, $s6
 move $a1, $s7
 li $a0, 8
 move $a0, $a0
-jal tig_malloc
+jal tig_allocRecord
 move $a0, $v0
 move $a0, $a0
 li $ra, 1000
@@ -57,10 +57,10 @@ jr $ra
 #
 # $Id: sysspim.s,v 1.1 2002/08/25 05:06:41 shivers Exp $
 
-	.globl tig_malloc
-	.ent tig_malloc
+	.globl malloc
+	.ent malloc
 	.text
-tig_malloc:
+malloc:
 	# round up the requested amount to a multiple of 4
 	add $a0, $a0, 3
 	srl $a0, $a0, 2
@@ -72,7 +72,7 @@ tig_malloc:
 	
 	j $ra
 
-	.end tig_malloc
+	.end malloc
 
 	
 
@@ -154,7 +154,7 @@ tig_initArray:
 	move	$v1,$v0
 	sll	$v0,$v1,2
 	move	$a0,$v0
-	la	$t9,tig_malloc
+	la	$t9,malloc
 	jal	$ra,$t9
 	sw	$v0,28($fp)
 	lw	$v0,28($fp)
@@ -215,7 +215,7 @@ tig_allocRecord:
 	.set	at
 	sw	$a0,16($fp)
 	lw	$a0,16($fp)
-	la	$t9,tig_malloc
+	la	$t9,malloc
 	jal	$ra,$t9
 	move	$v1,$v0
 	move	$v0,$v1
@@ -643,7 +643,7 @@ tig_substring:
 	lw	$v1,24($fp)
 	addu	$v0,$v1,4
 	move	$a0,$v0
-	la	$t9,tig_malloc
+	la	$t9,malloc
 	jal	$ra,$t9
 	sw	$v0,28($fp)
 	lw	$v0,28($fp)
@@ -732,7 +732,7 @@ tig_concat:
 	lw	$v1,28($fp)
 	addu	$v0,$v1,4
 	move	$a0,$v0
-	la	$t9,tig_malloc
+	la	$t9,malloc
 	jal	$ra,$t9
 	sw	$v0,32($fp)
 	lw	$v0,32($fp)
