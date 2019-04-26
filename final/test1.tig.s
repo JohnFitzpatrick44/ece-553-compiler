@@ -5,7 +5,7 @@ tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -16
-L309:
+L179:
 move $a0, $a0
 move $a0, $ra
 sw $a0, -12($fp)
@@ -24,13 +24,14 @@ move $a1, $a1
 jal tig_initArray
 move $a0, $v0
 move $a0, $a0
-addi $a0, $a0, 4
 move $a0, $a0
 li $ra, 3
 lw $a1, -4($a0)
-blt $ra, $a1, L304
-L306:
-L307:
+blt $ra, $a1, L174
+L176:
+li $a0, 49
+move $a0, $a0
+L177:
 move $v0, $s6
 lw $a0, -12($fp)
 move $ra, $a0
@@ -42,14 +43,14 @@ move $s4, $s4
 move $s5, $s5
 move $s6, $a3
 move $s7, $a2
-j L308
-L304:
+j L178
+L174:
 li $a1, 3
-bgez $a1, L306
-L305:
+bgez $a1, L176
+L175:
 lw $s6, 3($a0)
-j L307
-L308:
+j L177
+L178:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra

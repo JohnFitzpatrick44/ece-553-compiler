@@ -138,7 +138,8 @@ fun subscriptVar (addr, index) =
     Ex(T.ESEQ(seq [
         T.CJUMP (T.LT, unEx index, sizeExp, valid, invalid),
         T.LABEL valid,
-        T.CJUMP (T.GE, unEx index, T.CONST 0, good, invalid),
+        T.CJUMP (T.GE, unEx index, T.CONST 0, invalid, good),
+          (* switched for some reason??? *)
         T.LABEL good,
         T.MOVE(T.TEMP r,
                T.MEM(T.BINOP(T.PLUS, 
@@ -146,7 +147,7 @@ fun subscriptVar (addr, index) =
                              unEx index))),
         T.JUMP (T.NAME exit, [exit]),
         T.LABEL invalid,
-        T.BINOP (T.PLUS, T.CONT 15, T.CONST 34),
+        (*Need invalid array code*)
         T.LABEL exit], 
       T.TEMP r))
   end
