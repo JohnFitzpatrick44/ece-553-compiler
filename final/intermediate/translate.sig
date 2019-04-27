@@ -43,6 +43,10 @@ val strLit: string -> exp
 
 val stringEQ:  exp * exp -> exp
 val stringNEQ:  exp * exp -> exp
+val stringGE:  exp * exp -> exp
+val stringGT:  exp * exp -> exp
+val stringLE:  exp * exp -> exp
+val stringLT:  exp * exp -> exp
 
 (* for testing *)
 val clear: unit -> unit
