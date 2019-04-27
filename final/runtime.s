@@ -270,6 +270,73 @@ tig_stringEqual:
 	j	$ra
 .LFE3:
 	.end	tig_stringEqual
+	.align 4	
+	.globl tig_stringLessThan
+	.ent tig_stringLessThan
+tig_stringLessThan:
+	addiu $sp, $sp, -64
+	sw $s0, 4($sp)
+	sw $s1, 8($sp)
+	sw $s2, 12($sp)
+	sw $s3, 16($sp)
+	sw $s4, 20($sp)
+	sw $s5, 24($sp)
+	sw $s6, 28($sp)
+	sw $s7, 32($sp)
+
+	lw $s6, 0($a0)
+	lw $s7, 0($a1)
+	addi $s0, $a0, 4
+	addi $s1, $a1, 4 
+	addi $s5, $0, 0
+	
+compare:
+	lbu $s2, 0($s0)
+	lbu $s3, 0($s1)
+
+	slt $s4, $s2, $s3
+	bne $s4, $0, str1smaller
+
+	slt $s4, $s3, $s2
+	bne $s4, $0, str2smaller
+
+	addi $s0, $s0, 1
+	addi $s1, $s1, 1
+	addi $s5, $s5, 1
+
+	beq $s6, $s5, str1end
+	beq $s7, $s5, str2smaller
+	j compare 
+
+str1end:
+	beq $s6, $s7, equalStrings
+	j str1smaller
+
+str1smaller:
+	addi $v0, $0, 1
+	j endStringCompare
+
+str2smaller:
+	addi $v0, $0, 0
+	j endStringCompare
+
+equalStrings:
+	addi $v0, $0, 0
+	j endStringCompare
+
+endStringCompare:
+	lw $s0, 4($sp)
+	lw $s1, 8($sp)
+	lw $s2, 12($sp)
+	lw $s3, 16($sp)
+	lw $s4, 20($sp)
+	lw $s5, 24($sp)
+	lw $s6, 28($sp)
+	lw $s7, 32($sp)
+	addiu $sp, $sp, 64
+	jr $ra
+
+	.end tig_stringLessThan
 	.align 4
 	.globl	tig_print
 	.ent	tig_print

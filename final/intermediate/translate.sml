@@ -359,4 +359,12 @@ fun stringEQ (e1, e2) =  Ex(Frame.externalCall("stringEqual", [unEx e1,unEx e2])
 
 fun stringNEQ (e1, e2) = Ex(T.BINOP(T.XOR, unEx (stringEQ(e1, e2)), T.CONST(1)))
 
+fun stringGT (e1, e2) = Ex(Frame.externalCall("stringLessThan", [unEx e2, unEx e1]))
+
+fun stringLT (e1, e2) = Ex(Frame.externalCall("stringLessThan", [unEx e1, unEx e2]))
+
+fun stringGE (e1, e2) = Ex(T.BINOP(T.XOR, unEx (stringLT(e1, e2)), T.CONST(1)))
+
+fun stringLE (e1, e2) = Ex(T.BINOP(T.XOR, unEx (stringGT(e1, e2)), T.CONST(1)))
+
 end

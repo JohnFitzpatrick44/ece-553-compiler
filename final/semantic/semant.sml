@@ -288,8 +288,16 @@ struct
       and checkMatchTwoIntStr(oper, left, right, pos) = 
         Log.flatMap(trExp left, fn ({exp=leftExp, ty=leftTy}) =>
         Log.flatMap(trExp right, fn ({exp=rightExp, ty=rightTy}) =>
-        Log.flatMap(checkMatchIntStr(leftTy, rightTy, pos), fn () => 
-          Log.success({exp=Tr.relop(oper, leftExp, rightExp), ty=Types.INT}))))
+        Log.flatMap(checkMatchIntStr(leftTy, rightTy, pos), fn () =>
+          case leftTy of
+            Types.STRING => (
+              case oper of 
+                A.LtOp => Log.success({exp=Tr.stringLT(leftExp, rightExp), ty=Types.INT})
+              | A.LeOp => Log.success({exp=Tr.stringLE(leftExp, rightExp), ty=Types.INT})
+              | A.GtOp => Log.success({exp=Tr.stringGT(leftExp, rightExp), ty=Types.INT})
+              | A.GeOp => Log.success({exp=Tr.stringGE(leftExp, rightExp), ty=Types.INT})
+            )
+          | _ => Log.success({exp=Tr.relop(oper, leftExp, rightExp), ty=Types.INT}))))
 
       and opExp(left, A.PlusOp, right, pos) = checkMatchTwoInt(A.PlusOp, left, right, pos)
         | opExp(left, A.MinusOp, right, pos) = checkMatchTwoInt(A.MinusOp, left, right, pos)
