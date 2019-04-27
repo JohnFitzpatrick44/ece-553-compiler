@@ -20,7 +20,7 @@ type access = level * Frame.access
 val outOfBounds = Temp.newlabel()
 val nilRecord = Temp.newlabel()
 
-val frags: frag list ref = ref [(outOfBounds, "Array index out of bounds.\n"), (nilRecord, "Cannot access nil record.")] 
+val frags: frag list ref = ref [Frame.STRING(outOfBounds, "Array index out of bounds.\n"), Frame.STRING(nilRecord, "Cannot access nil record.")] 
 
 fun seq stmts =
   case stmts of
