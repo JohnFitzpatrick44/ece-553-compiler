@@ -5,8 +5,8 @@ tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -16
-L7291:
-move $a0, $a0
+L1479:
+sw $a0, -8($fp)
 move $a0, $ra
 sw $a0, -12($fp)
 move $s0, $s0
@@ -15,40 +15,12 @@ move $s2, $s2
 move $s3, $s3
 move $s4, $s4
 move $s5, $s5
-move $s6, $s6
-move $s7, $s7
-li $a0, 0
-li $a0, 1
-li $a0, 2
-li $a0, 3
-li $a0, 4
+move $a3, $s6
+move $a2, $s7
 li $a0, 5
-li $a0, 6
-li $a0, 7
-li $a0, 8
-li $a0, 9
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 13
-li $a0, 11
 move $a0, $a0
-li $a1, 11
-move $a1, $a1
-li $a2, 11
-move $a2, $a2
-li $a3, 11
-move $a3, $a3
-li $ra, 11
-sw $ra, -4($sp)
-li $ra, 11
-sw $ra, -8($sp)
-sw $fp, -12($sp)
-jal L7289
+move $a1, $fp
+jal L1474
 move $a0, $v0
 move $a0, $a0
 move $a0, $a0
@@ -67,51 +39,62 @@ move $s2, $s2
 move $s3, $s3
 move $s4, $s4
 move $s5, $s5
-move $s6, $s6
-move $s7, $s7
-j L7290
-L7290:
+move $s6, $a3
+move $s7, $a2
+j L1478
+L1478:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra
-L7289:
+L1474:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -20
-L7433:
+L1565:
+sw $a0, -12($fp)
+sw $a1, -8($fp)
+move $a0, $ra
+sw $a0, -16($fp)
+move $s0, $s0
+move $s1, $s1
+move $s2, $s2
+move $s3, $s3
+move $s4, $s4
+move $s5, $s5
+move $a3, $s6
+move $a2, $s7
+lw $a0, -12($fp)
+beqz $a0, L1475
+L1476:
+lw $a0, -12($fp)
+addi $a0, $a0, -1
 move $a0, $a0
+lw $a1, -8($fp)
 move $a1, $a1
-move $a2, $a2
-move $a3, $a3
-lw $t0, -4($fp)
-lw $t1, -8($fp)
-lw $t2, -12($fp)
-move $ra, $ra
-move $s0, $s0
-move $s1, $s1
-move $s2, $s2
-move $s3, $s3
-move $s4, $s4
-move $s5, $s5
-move $s6, $s6
-move $s7, $s7
-add $t0, $t1, $t0
-add $a3, $t0, $a3
-add $a2, $a3, $a2
-add $a1, $a2, $a1
-add $a0, $a1, $a0
+jal L1474
+move $a0, $v0
+move $a0, $a0
+lw $a1, -12($fp)
+mult $a0, $a1
+mflo $a0
+move $a0, $a0
+L1477:
 move $v0, $a0
-move $ra, $ra
+lw $a0, -16($fp)
+move $ra, $a0
 move $s0, $s0
 move $s1, $s1
 move $s2, $s2
 move $s3, $s3
 move $s4, $s4
 move $s5, $s5
-move $s6, $s6
-move $s7, $s7
-j L7432
-L7432:
+move $s6, $a3
+move $s7, $a2
+j L1564
+L1475:
+li $a0, 1
+j L1477
+L1564:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra

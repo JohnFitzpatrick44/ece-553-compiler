@@ -125,7 +125,7 @@ fun interferenceGraph(flowgraph) =
 			end
 
 		val q = foldr accInfo "" flowNodes
-		val _ = print q
+		(* val _ = print q *)
 		(* val _ = printGraph(finalIgraph) *)
 	in
 		(finalIgraph, liveOuts)
