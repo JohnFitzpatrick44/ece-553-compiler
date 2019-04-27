@@ -1,11 +1,20 @@
 .globl main
 .data
+L1191:
+.word 1
+.ascii "c"
+L1190:
+.word 1
+.ascii "b"
+L1189:
+.word 1
+.ascii "a"
 .text
 tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -16
-L7291:
+L1199:
 move $a0, $a0
 move $a0, $ra
 sw $a0, -12($fp)
@@ -14,47 +23,21 @@ move $s1, $s1
 move $s2, $s2
 move $s3, $s3
 move $s4, $s4
-move $s5, $s5
-move $s6, $s6
-move $s7, $s7
-li $a0, 0
-li $a0, 1
+move $a3, $s5
+move $a2, $s6
+move $a1, $s7
+li $ra, 1
 li $a0, 2
-li $a0, 3
-li $a0, 4
-li $a0, 5
-li $a0, 6
-li $a0, 7
-li $a0, 8
-li $a0, 9
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 1
-li $a0, 13
-li $a0, 11
+bgt $ra, $a0, L1195
+L1196:
+li $a0, 2
+blt $ra, $a0, L1192
+L1193:
+la $a0, L1191
 move $a0, $a0
-li $a1, 11
-move $a1, $a1
-li $a2, 11
-move $a2, $a2
-li $a3, 11
-move $a3, $a3
-li $ra, 11
-sw $ra, -4($sp)
-li $ra, 11
-sw $ra, -8($sp)
-sw $fp, -12($sp)
-jal L7289
-move $a0, $v0
+L1194:
 move $a0, $a0
-move $a0, $a0
-jal tig_chr
-move $a0, $v0
-move $a0, $a0
+L1197:
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -66,52 +49,19 @@ move $s1, $s1
 move $s2, $s2
 move $s3, $s3
 move $s4, $s4
-move $s5, $s5
-move $s6, $s6
-move $s7, $s7
-j L7290
-L7290:
-move $sp, $fp
-lw $fp, 0($sp)
-jr $ra
-L7289:
-sw $fp, 0($sp)
-move $fp, $sp
-addiu $sp, $sp, -20
-L7433:
+move $s5, $a3
+move $s6, $a2
+move $s7, $a1
+j L1198
+L1195:
+la $a0, L1189
 move $a0, $a0
-move $a1, $a1
-move $a2, $a2
-move $a3, $a3
-lw $t0, -4($fp)
-lw $t1, -8($fp)
-lw $t2, -12($fp)
-move $ra, $ra
-move $s0, $s0
-move $s1, $s1
-move $s2, $s2
-move $s3, $s3
-move $s4, $s4
-move $s5, $s5
-move $s6, $s6
-move $s7, $s7
-add $t0, $t1, $t0
-add $a3, $t0, $a3
-add $a2, $a3, $a2
-add $a1, $a2, $a1
-add $a0, $a1, $a0
-move $v0, $a0
-move $ra, $ra
-move $s0, $s0
-move $s1, $s1
-move $s2, $s2
-move $s3, $s3
-move $s4, $s4
-move $s5, $s5
-move $s6, $s6
-move $s7, $s7
-j L7432
-L7432:
+j L1197
+L1192:
+la $a0, L1190
+move $a0, $a0
+j L1194
+L1198:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra

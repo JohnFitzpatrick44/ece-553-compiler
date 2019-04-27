@@ -55,7 +55,7 @@ fun unEx (Ex e) = e
         val f = Temp.newlabel()
       in 
         T.ESEQ(seq[T.MOVE(T.TEMP r, T.CONST 1),
-                   genstm(t,f),
+                   genstm(f,t),
                    T.LABEL f,
                    T.MOVE(T.TEMP r, T.CONST 0),
                    T.LABEL t], 
@@ -142,17 +142,19 @@ fun subscriptVar (addr, index) =
      val valid = Temp.newlabel()
      val invalid = Temp.newlabel()
      val exit = Temp.newlabel()
-     val sizeExp = T.MEM(T.BINOP(T.MINUS, unEx addr, T.CONST Frame.wordSize))
+     val indexExp = unEx index
+     val addrExp = unEx addr
+     val sizeExp = T.MEM(T.BINOP(T.MINUS, addrExp, T.CONST Frame.wordSize))
      val memExp = T.MEM(T.BINOP(T.PLUS, 
-                                unEx addr, 
+                                addrExp, 
                                 T.BINOP(T.MUL, 
-                                        unEx index,
+                                        indexExp,
                                         T.CONST Frame.wordSize)))
    in 
     Ex(T.ESEQ(seq [
-        T.CJUMP (T.GE, unEx index, sizeExp, invalid, valid),
+        T.CJUMP (T.LT, indexExp, sizeExp, valid, invalid),
         T.LABEL valid,
-        T.CJUMP (T.LT, unEx index, T.CONST 0, invalid, exit),
+        T.CJUMP (T.GE, T.CONST 0, indexExp, exit, invalid),
         T.LABEL invalid,
         T.EXP(Frame.externalCall("print", [unEx (strLit "Array index out of bounds.\n")])),
         T.EXP(Frame.externalCall("exit", [T.CONST 1])),

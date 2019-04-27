@@ -1,36 +1,33 @@
 .globl main
 .data
-L14:
-.word 5
-.ascii "Who\n"
-L13:
+L936:
 .word 26
 .ascii "Cannot access nil record.
 "
-L10:
+L933:
 .word 26
 .ascii "Cannot access nil record.
 "
-L7:
-.word 10
-.ascii "Somebody\n"
-L6:
-.word 26
-.ascii "Cannot access nil record.
-"
-L3:
-.word 26
-.ascii "Cannot access nil record.
-"
-L0:
+L930:
 .word 8
-.ascii "Nobody\n"
+.ascii "Somebody"
+L929:
+.word 26
+.ascii "Cannot access nil record.
+"
+L926:
+.word 26
+.ascii "Cannot access nil record.
+"
+L923:
+.word 6
+.ascii "Nobody"
 .text
 tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -16
-L16:
+L938:
 move $a0, $a0
 move $a0, $ra
 sw $a0, -12($fp)
@@ -49,13 +46,13 @@ move $a0, $v0
 move $a0, $a0
 li $ra, 1000
 sw $ra, 0($a0)
-la $ra, L0
+la $ra, L923
 sw $ra, 4($a0)
 move $s5, $a0
 li $s6, 0
-bnez $s5, L1
-L2:
-la $a0, L3
+bnez $s5, L924
+L925:
+la $a0, L926
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -63,16 +60,16 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L1:
+L924:
 li $a0, 4
 add $a0, $s5, $a0
 lw $a0, 0($a0)
 move $a0, $a0
 jal tig_print
 move $a0, $v0
-bnez $s5, L4
-L5:
-la $a0, L6
+bnez $s5, L927
+L928:
+la $a0, L929
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -80,14 +77,14 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L4:
-la $ra, L7
+L927:
+la $ra, L930
 li $a0, 4
 add $a0, $s5, $a0
 sw $ra, 0($a0)
-bnez $s5, L8
-L9:
-la $a0, L10
+bnez $s5, L931
+L932:
+la $a0, L933
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -95,16 +92,16 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L8:
+L931:
 li $a0, 4
 add $a0, $s5, $a0
 lw $a0, 0($a0)
 move $a0, $a0
 jal tig_print
 move $a0, $v0
-bnez $s6, L11
-L12:
-la $a0, L13
+bnez $s6, L934
+L935:
+la $a0, L936
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -112,11 +109,13 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L11:
-la $ra, L14
+L934:
 li $a0, 4
 add $a0, $s6, $a0
-sw $ra, 0($a0)
+lw $a0, 0($a0)
+move $a0, $a0
+jal tig_print
+move $a0, $v0
 move $v0, $s5
 lw $a0, -12($fp)
 move $ra, $a0
@@ -128,8 +127,8 @@ move $s4, $s4
 move $s5, $a3
 move $s6, $a2
 move $s7, $a1
-j L15
-L15:
+j L937
+L937:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra

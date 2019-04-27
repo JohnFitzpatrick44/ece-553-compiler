@@ -1,18 +1,6 @@
 .globl main
 .data
-L412:
-.word 27
-.ascii "Array index out of bounds.
-"
-L408:
-.word 27
-.ascii "Array index out of bounds.
-"
-L404:
-.word 27
-.ascii "Array index out of bounds.
-"
-L400:
+L792:
 .word 27
 .ascii "Array index out of bounds.
 "
@@ -21,7 +9,7 @@ tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -16
-L414:
+L794:
 move $a0, $a0
 move $a0, $ra
 sw $a0, -12($fp)
@@ -42,89 +30,26 @@ move $a0, $v0
 move $a0, $a0
 addi $a0, $a0, 4
 move $a1, $a0
-li $ra, 3
-lw $a0, -4($a1)
-blt $ra, $a0, L397
-L398:
-la $a0, L400
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-li $a0, 1
-move $a0, $a0
-jal tig_exit
-move $a0, $v0
-L399:
-li $a0, 12
-add $a0, $a1, $a0
-lw $a0, 0($a0)
-move $a0, $a0
-jal tig_chr
-move $a0, $v0
-move $a0, $a0
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-li $ra, 3
-lw $a0, -4($a1)
-blt $ra, $a0, L401
-L402:
-la $a0, L404
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-li $a0, 1
-move $a0, $a0
-jal tig_exit
-move $a0, $v0
-L403:
-li $ra, 74
-li $a0, 12
-add $a0, $a1, $a0
-sw $ra, 0($a0)
-li $ra, 3
-lw $a0, -4($a1)
-blt $ra, $a0, L405
-L406:
-la $a0, L408
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-li $a0, 1
-move $a0, $a0
-jal tig_exit
-move $a0, $v0
-L407:
-li $a0, 12
-add $a0, $a1, $a0
-lw $a0, 0($a0)
-move $a0, $a0
-jal tig_chr
-move $a0, $v0
-move $a0, $a0
-move $a0, $a0
-jal tig_print
-move $a0, $v0
 li $ra, -1
 lw $a0, -4($a1)
-blt $ra, $a0, L409
-L410:
-la $a0, L412
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-li $a0, 1
-move $a0, $a0
-jal tig_exit
-move $a0, $v0
-L411:
-li $s6, 10
+bge $ra, $a0, L790
+L789:
+li $a0, -1
+bltz $a0, L790
+L791:
 li $ra, -1
 li $a0, 4
 mult $ra, $a0
 mflo $a0
 add $a0, $a1, $a0
-sw $s6, 0($a0)
+lw $a0, 0($a0)
+move $a0, $a0
+jal tig_chr
+move $a0, $v0
+move $a0, $a0
+move $a0, $a0
+jal tig_print
+move $a0, $v0
 move $v0, $a1
 lw $a0, -12($fp)
 move $ra, $a0
@@ -136,28 +61,18 @@ move $s4, $s4
 move $s5, $s5
 move $s6, $a3
 move $s7, $a2
-j L413
-L397:
-li $a0, 3
-bltz $a0, L398
-L415:
-j L399
-L401:
-li $a0, 3
-bltz $a0, L402
-L416:
-j L403
-L405:
-li $a0, 3
-bltz $a0, L406
-L417:
-j L407
-L409:
-li $a0, -1
-bltz $a0, L410
-L418:
-j L411
-L413:
+j L793
+L790:
+la $a0, L792
+move $a0, $a0
+jal tig_print
+move $a0, $v0
+li $a0, 1
+move $a0, $a0
+jal tig_exit
+move $a0, $v0
+j L791
+L793:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra
