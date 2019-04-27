@@ -38,7 +38,7 @@ struct
 			val (allocated, spills) = Color.color({interference = igraph,
 					                                   initial = Frame.tempMap,
 					                                   spillCost = spillCost o getNode,
-                                             registers = Frame.registers})
+                                             registers = Frame.nonZeroRegisters})
 
 			fun rebuildFromSpill(instrs, spills) = 
 				let 

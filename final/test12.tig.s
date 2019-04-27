@@ -4,97 +4,44 @@
 tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
-addiu $sp, $sp, -16
-L1479:
-sw $a0, -8($fp)
+addiu $sp, $sp, -12
+L4:
+move $a0, $a0
 move $a0, $ra
-sw $a0, -12($fp)
-move $s0, $s0
-move $s1, $s1
-move $s2, $s2
+move $a1, $s0
+move $a2, $s1
+move $a3, $s2
 move $s3, $s3
 move $s4, $s4
 move $s5, $s5
-move $a3, $s6
-move $a2, $s7
-li $a0, 5
-move $a0, $a0
-move $a1, $fp
-jal L1474
-move $a0, $v0
-move $a0, $a0
-move $a0, $a0
-jal tig_chr
-move $a0, $v0
-move $a0, $a0
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-move $v0, $a0
-lw $a0, -12($fp)
+move $s6, $s6
+move $s7, $s7
+li $ra, 0
+li $s0, 0
+li $s1, 100
+ble $s0, $s1, L1
+L0:
+li $v0, 0
 move $ra, $a0
-move $s0, $s0
-move $s1, $s1
-move $s2, $s2
+move $s0, $a1
+move $s1, $a2
+move $s2, $a3
 move $s3, $s3
 move $s4, $s4
 move $s5, $s5
-move $s6, $a3
-move $s7, $a2
-j L1478
-L1478:
-move $sp, $fp
-lw $fp, 0($sp)
-jr $ra
-L1474:
-sw $fp, 0($sp)
-move $fp, $sp
-addiu $sp, $sp, -20
-L1565:
-sw $a0, -12($fp)
-sw $a1, -8($fp)
-move $a0, $ra
-sw $a0, -16($fp)
+move $s6, $s6
+move $s7, $s7
+j L3
+L1:
+addi $ra, $ra, 1
+move $ra, $ra
+li $ra, 100
+bge $s0, $ra, L0
+L2:
+addi $s0, $s0, 1
 move $s0, $s0
-move $s1, $s1
-move $s2, $s2
-move $s3, $s3
-move $s4, $s4
-move $s5, $s5
-move $a3, $s6
-move $a2, $s7
-lw $a0, -12($fp)
-beqz $a0, L1475
-L1476:
-lw $a0, -12($fp)
-addi $a0, $a0, -1
-move $a0, $a0
-lw $a1, -8($fp)
-move $a1, $a1
-jal L1474
-move $a0, $v0
-move $a0, $a0
-lw $a1, -12($fp)
-mult $a0, $a1
-mflo $a0
-move $a0, $a0
-L1477:
-move $v0, $a0
-lw $a0, -16($fp)
-move $ra, $a0
-move $s0, $s0
-move $s1, $s1
-move $s2, $s2
-move $s3, $s3
-move $s4, $s4
-move $s5, $s5
-move $s6, $a3
-move $s7, $a2
-j L1564
-L1475:
-li $a0, 1
-j L1477
-L1564:
+j L1
+L3:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra

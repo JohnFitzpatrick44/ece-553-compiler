@@ -5,6 +5,7 @@ sig
 	type register = string
 
 	val registers: register list
+  val nonZeroRegisters: register list
   val tempMap: register Temp.Map.map
 
 

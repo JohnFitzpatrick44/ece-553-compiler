@@ -54,11 +54,11 @@ fun unEx (Ex e) = e
         val t = Temp.newlabel()
         val f = Temp.newlabel()
       in 
-        T.ESEQ(seq[T.MOVE(T.TEMP r, T.CONST 1),
+        T.ESEQ(seq[T.MOVE(T.TEMP r, T.CONST 0),
                    genstm(t,f),
-                   T.LABEL f,
-                   T.MOVE(T.TEMP r, T.CONST 0),
-                   T.LABEL t], 
+                   T.LABEL t,
+                   T.MOVE(T.TEMP r, T.CONST 1),
+                   T.LABEL f], 
                T.TEMP r)
       end
   | unEx (Nx s) = T.ESEQ(s, T.CONST 0)
@@ -142,17 +142,19 @@ fun subscriptVar (addr, index) =
      val valid = Temp.newlabel()
      val invalid = Temp.newlabel()
      val exit = Temp.newlabel()
-     val sizeExp = T.MEM(T.BINOP(T.MINUS, unEx addr, T.CONST Frame.wordSize))
+     val indexExp = unEx index
+     val addrExp = unEx addr
+     val sizeExp = T.MEM(T.BINOP(T.MINUS, addrExp, T.CONST Frame.wordSize))
      val memExp = T.MEM(T.BINOP(T.PLUS, 
-                                unEx addr, 
+                                addrExp, 
                                 T.BINOP(T.MUL, 
-                                        unEx index,
+                                        indexExp,
                                         T.CONST Frame.wordSize)))
    in 
     Ex(T.ESEQ(seq [
-        T.CJUMP (T.LT, unEx index, sizeExp, valid, invalid),
+        T.CJUMP (T.LT, indexExp, sizeExp, valid, invalid),
         T.LABEL valid,
-        T.CJUMP (T.LT, unEx index, T.CONST 0, invalid, exit),
+        T.CJUMP (T.GE, indexExp, T.CONST 0, exit, invalid),
         T.LABEL invalid,
         T.EXP(Frame.externalCall("print", [unEx (strLit "Array index out of bounds.\n")])),
         T.EXP(Frame.externalCall("exit", [T.CONST 1])),
@@ -285,7 +287,7 @@ fun forExp(idxExp, loExp, hiExp, body, exit) =
             T.CJUMP (T.LE, index, hi, start, exit),
             T.LABEL start,
             unNx body,
-            T.CJUMP (T.LT, index, hi, increment, exit),
+            T.CJUMP (T.GE, index, hi, exit, increment),
             T.LABEL increment,
             T.MOVE (index, T.BINOP (T.PLUS, index, T.CONST 1)),
             T.JUMP (T.NAME start, [start]),
