@@ -17,7 +17,10 @@ type access = level * Frame.access
 
 (* helpers *)
 
-val frags: frag list ref = ref [] 
+val outOfBounds = Temp.newlabel()
+val nilRecord = Temp.newlabel()
+
+val frags: frag list ref = ref [(outOfBounds, "Array index out of bounds.\n"), (nilRecord, "Cannot access nil record.")] 
 
 fun seq stmts =
   case stmts of
@@ -127,9 +130,6 @@ fun strLit s =
     Ex(T.NAME l)
   end
 
-val outOfBounds = strLit "Array index out of bounds.\n"
-val nilRecord = strLit "Cannot access nil record.\n"
-
 
 
 (* Variables *)
@@ -159,7 +159,7 @@ fun subscriptVar (addr, index) =
         T.LABEL valid,
         T.CJUMP (T.GE, indexExp, T.CONST 0, exit, invalid),
         T.LABEL invalid,
-        T.EXP(Frame.externalCall("print", [unEx outOfBounds])),
+        T.EXP(Frame.externalCall("print", [T.NAME outOfBounds])),
         T.EXP(Frame.externalCall("exit", [T.CONST 1])),
         T.LABEL exit], 
       memExp))
@@ -181,7 +181,7 @@ fun fieldVar (addr, offset) =
     Ex(T.ESEQ(seq [
         T.CJUMP (T.NE, unEx addr, T.CONST 0, valid, invalid),
         T.LABEL invalid,
-        T.EXP(Frame.externalCall("print", [unEx nilRecord])),
+        T.EXP(Frame.externalCall("print", [T.NAME nilRecord])),
         T.EXP(Frame.externalCall("exit", [T.CONST 1])),
         T.LABEL valid], 
       memExp))
