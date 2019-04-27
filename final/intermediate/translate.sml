@@ -284,7 +284,6 @@ fun whileExp(test, body, exit) =
 
 fun forExp(idxExp, loExp, hiExp, body, exit) = 
   let 
-    val index = Temp.newtemp()
     val loTemp = Temp.newtemp()
     val hiTemp = Temp.newtemp()
     val start = Temp.newlabel()
@@ -295,7 +294,7 @@ fun forExp(idxExp, loExp, hiExp, body, exit) =
             T.CJUMP (T.LE, unEx idxExp, T.TEMP hiTemp, start, exit),
             T.LABEL start,
             unNx body,
-            T.MOVE (unEx idxExp, T.BINOP (T.PLUS, T.TEMP index, T.CONST 1)),
+            T.MOVE (unEx idxExp, T.BINOP (T.PLUS, unEx idxExp, T.CONST 1)),
             T.CJUMP (T.LE, unEx idxExp, T.TEMP hiTemp, start, exit),
             T.LABEL exit])
   end

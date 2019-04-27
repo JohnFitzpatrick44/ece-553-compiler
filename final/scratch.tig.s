@@ -5,7 +5,7 @@ tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -12
-L2124:
+L3:
 sw $a0, -8($fp)
 move $a0, $ra
 move $a0, $s0
@@ -16,13 +16,11 @@ move $a0, $s4
 move $a0, $s5
 move $a0, $s6
 move $a0, $s7
-li $a0, 0
 li $a0, 70
-move $a1, $a0
-li $a2, 80
-move $a0, $a1
-ble $a1, $a2, L2122
-L2121:
+li $a2, 75
+move $a0, $a0
+ble $a0, $a2, L1
+L0:
 li $v0, 0
 move $ra, $a0
 move $s0, $a0
@@ -33,8 +31,8 @@ move $s4, $a0
 move $s5, $a0
 move $s6, $a0
 move $s7, $a0
-j L2123
-L2122:
+j L2
+L1:
 move $a0, $a0
 jal tig_chr
 move $a0, $v0
@@ -43,12 +41,11 @@ move $a0, $a0
 jal tig_print
 move $a0, $v0
 addi $a0, $a1, 1
-move $a1, $a0
-move $a0, $a1
-blt $a1, $a2, L2122
-L2125:
-j L2121
-L2123:
+move $a0, $a0
+ble $a0, $a2, L1
+L4:
+j L0
+L2:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra
