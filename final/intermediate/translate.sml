@@ -54,11 +54,11 @@ fun unEx (Ex e) = e
         val t = Temp.newlabel()
         val f = Temp.newlabel()
       in 
-        T.ESEQ(seq[T.MOVE(T.TEMP r, T.CONST 1),
+        T.ESEQ(seq[T.MOVE(T.TEMP r, T.CONST 0),
                    genstm(t,f),
-                   T.LABEL f,
-                   T.MOVE(T.TEMP r, T.CONST 0),
-                   T.LABEL t], 
+                   T.LABEL t,
+                   T.MOVE(T.TEMP r, T.CONST 1),
+                   T.LABEL f], 
                T.TEMP r)
       end
   | unEx (Nx s) = T.ESEQ(s, T.CONST 0)
