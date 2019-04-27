@@ -277,7 +277,13 @@ struct
         Log.flatMap(trExp left, fn ({exp=leftExp, ty=leftTy}) =>
         Log.flatMap(trExp right, fn ({exp=rightExp, ty=rightTy}) =>
         Log.flatMap(checkMatch(leftTy, rightTy, pos), fn () => 
-          Log.success({exp=Tr.relop(oper, leftExp, rightExp), ty=Types.INT}))))
+          case leftTy of 
+            Types.INT => Log.success({exp=Tr.relop(oper, leftExp, rightExp), ty=Types.INT})
+          | Types.STRING => (
+              case oper of 
+                A.EqOp => Log.success({exp=Tr.stringEQ(leftExp, rightExp), ty=Types.INT})
+              | A.NeOp => Log.success({exp=Tr.stringNEQ(leftExp, rightExp), ty=Types.INT})
+            ))))
 
       and checkMatchTwoIntStr(oper, left, right, pos) = 
         Log.flatMap(trExp left, fn ({exp=leftExp, ty=leftTy}) =>

@@ -1,11 +1,20 @@
 .globl main
 .data
+L2618:
+.word 3
+.ascii "yes"
+L2617:
+.word 1
+.ascii "a"
+L2616:
+.word 1
+.ascii "a"
 .text
 tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -16
-L52:
+L2622:
 sw $a0, -8($fp)
 move $a0, $ra
 sw $a0, -12($fp)
@@ -17,10 +26,10 @@ move $s4, $s4
 move $a3, $s5
 move $a2, $s6
 move $a1, $s7
-li $s5, 70
-li $a0, 75
-ble $s5, $a0, L49
-L48:
+la $ra, L2616
+la $a0, L2617
+beq $ra, $a0, L2619
+L2620:
 li $v0, 0
 lw $a0, -12($fp)
 move $ra, $a0
@@ -32,22 +41,14 @@ move $s4, $s4
 move $s5, $a3
 move $s6, $a2
 move $s7, $a1
-j L51
-L49:
-move $a0, $s5
-jal tig_chr
-move $a0, $v0
-move $a0, $a0
+j L2621
+L2619:
+la $a0, L2618
 move $a0, $a0
 jal tig_print
 move $a0, $v0
-li $a0, 75
-bge $s5, $a0, L48
-L50:
-addi $a0, $s5, 1
-move $s5, $a0
-j L49
-L51:
+j L2620
+L2621:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra
