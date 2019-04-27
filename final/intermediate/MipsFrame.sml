@@ -78,13 +78,17 @@ struct
 
   fun newFrame({name = name, formals = formals, parentSize = parentSize}) = 
     let 
+      fun boolToString(true) = "true"
+        | boolToString(false) = "false"
+      val _ = print ((Temp.labelString name) ^ ": " ^ (String.concatWith ", " (map boolToString formals)) ^ "\n" ) 
+
       val totalOffset = ref 4 (* save a space for previous fp, which isn't necessarily the same as the static link
                                  might cause problems with static links because translate.sml seems to rely on the assumption that static links are at 0(FP) *)
       fun allocFormals([], offset, unescaped) = []
         | allocFormals(escape::elist, offset, unescaped) = 
             if ((not escape) andalso (unescaped < aRegs))
             then InReg(Temp.newtemp())::allocFormals(elist, offset, unescaped + 1)
-            else (totalOffset := !totalOffset + wordSize; InReg(Temp.newtemp())::allocFormals(elist, offset - wordSize, unescaped) )
+            else (totalOffset := !totalOffset + wordSize; InFrame(0-(!totalOffset))::allocFormals(elist, offset - wordSize, unescaped) )
     in
       {name = name, formals = allocFormals(formals, 0, 0), frameSize = totalOffset, parentSize = parentSize}
     end

@@ -667,6 +667,6 @@ struct
       val translated = transExp(mainLevel, E.base_venv, E.base_tenv, absyn, [])
       val logs = Log.map(translated, fn {exp=progExp, ty=_} => Tr.procEntryExit{level=mainLevel, body=progExp})
     in
-      (Log.report logs; Tr.getResult())
+      (Log.report logs; if Log.isLogEmpty logs then Tr.getResult() else [])
     end
 end

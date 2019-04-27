@@ -126,8 +126,8 @@ struct
       val todoStack = rev (todoList interference)
 
       (* prints out the stack *)
-      fun println s = print (s ^ "\n")
-      val () = app (println o todo2str) todoStack
+      (* fun println s = print (s ^ "\n") *)
+      (* val () = app (println o todo2str) todoStack *)
 
       fun freeReg(neighbors, alloc): Frame.register option = 
         let
