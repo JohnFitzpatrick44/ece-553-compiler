@@ -1,14 +1,11 @@
 .globl main
 .data
-L1596:
-.word 1
-.ascii "Z"
 .text
 tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -16
-L1601:
+L1712:
 move $a0, $a0
 move $a0, $ra
 sw $a0, -12($fp)
@@ -17,14 +14,15 @@ move $s1, $s1
 move $s2, $s2
 move $s3, $s3
 move $s4, $s4
-move $a3, $s5
-move $a2, $s6
-move $a1, $s7
-li $s5, 70
-li $a0, 120
-blt $s5, $a0, L1599
-L1595:
-li $v0, 0
+move $s5, $s5
+move $a3, $s6
+move $a2, $s7
+li $a0, 10
+move $a0, $a0
+move $a1, $fp
+jal L1707
+move $a0, $v0
+move $v0, $a0
 lw $a0, -12($fp)
 move $ra, $a0
 move $s0, $s0
@@ -32,35 +30,59 @@ move $s1, $s1
 move $s2, $s2
 move $s3, $s3
 move $s4, $s4
-move $s5, $a3
-move $s6, $a2
-move $s7, $a1
-j L1600
-L1599:
-move $a0, $s5
-jal tig_chr
-move $a0, $v0
-move $a0, $a0
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-addi $a0, $s5, 1
-move $s5, $a0
 move $s5, $s5
-la $a0, L1596
+move $s6, $a3
+move $s7, $a2
+j L1711
+L1711:
+move $sp, $fp
+lw $fp, 0($sp)
+jr $ra
+L1707:
+sw $fp, 0($sp)
+move $fp, $sp
+addiu $sp, $sp, -16
+L1782:
 move $a0, $a0
-jal tig_ord
+move $a1, $a1
+move $a1, $ra
+sw $a1, -12($fp)
+move $s0, $s0
+move $s1, $s1
+move $s2, $s2
+move $s3, $s3
+move $s4, $s4
+move $s5, $s5
+move $a3, $s6
+move $a2, $s7
+beqz $a0, L1708
+L1709:
+move $s6, $a0
+addi $a0, $a0, -1
+move $a0, $a0
+move $a1, $a1
+jal L1707
 move $a0, $v0
 move $a0, $a0
-beq $s5, $a0, L1597
-L1598:
-li $a0, 120
-blt $s5, $a0, L1599
-L1602:
-j L1595
-L1597:
-j L1595
-L1600:
+add $a0, $s6, $a0
+move $a0, $a0
+L1710:
+move $v0, $a0
+lw $a0, -12($fp)
+move $ra, $a0
+move $s0, $s0
+move $s1, $s1
+move $s2, $s2
+move $s3, $s3
+move $s4, $s4
+move $s5, $s5
+move $s6, $a3
+move $s7, $a2
+j L1781
+L1708:
+li $a0, 1
+j L1710
+L1781:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra
