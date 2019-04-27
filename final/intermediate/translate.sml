@@ -142,19 +142,23 @@ fun subscriptVar (addr, index) =
      val valid = Temp.newlabel()
      val invalid = Temp.newlabel()
      val exit = Temp.newlabel()
-     val indexExp = unEx index
-     val addrExp = unEx addr
-     val sizeExp = T.MEM(T.BINOP(T.MINUS, addrExp, T.CONST Frame.wordSize))
+     val addrTemp = Temp.newtemp()
+     val indexTemp = Temp.newtemp()
+     val sizeTemp = Temp.newtemp()
+
      val memExp = T.MEM(T.BINOP(T.PLUS, 
-                                addrExp, 
+                                T.TEMP addrTemp, 
                                 T.BINOP(T.MUL, 
-                                        indexExp,
+                                        T.TEMP indexTemp,
                                         T.CONST Frame.wordSize)))
    in 
     Ex(T.ESEQ(seq [
-        T.CJUMP (T.LT, indexExp, sizeExp, valid, invalid),
+        T.MOVE (T.TEMP addrTemp, unEx addr),
+        T.MOVE (T.TEMP indexTemp, unEx index),
+        T.MOVE (T.TEMP sizeTemp, T.MEM(T.BINOP(T.MINUS, addrTemp, T.CONST Frame.wordSize)))
+        T.CJUMP (T.LT, T.TEMP indexTemp, T.TEMP sizeTemp, valid, invalid),
         T.LABEL valid,
-        T.CJUMP (T.GE, indexExp, T.CONST 0, exit, invalid),
+        T.CJUMP (T.GE, T.TEMP indexTemp, T.CONST 0, exit, invalid),
         T.LABEL invalid,
         T.EXP(Frame.externalCall("print", [unEx (strLit "Array index out of bounds.\n")])),
         T.EXP(Frame.externalCall("exit", [T.CONST 1])),
@@ -168,15 +172,18 @@ fun fieldVar (addr, offset) =
   let
     val valid = Temp.newlabel()
     val invalid = Temp.newlabel()
+    val addrTemp = Temp.newtemp()
+
     val memExp = T.MEM(T.BINOP(T.PLUS, 
-                               unEx addr, 
+                               T.TEMP addrTemp, 
                                T.BINOP(T.MUL, 
                                        T.CONST(offset), 
                                        T.CONST (Frame.wordSize))))
   in
     (* nil checking (?) *)
     Ex(T.ESEQ(seq [
-        T.CJUMP (T.NE, unEx addr, T.CONST 0, valid, invalid),
+        T.MOVE (T.TEMP addrTemp, unEx addr),
+        T.CJUMP (T.NE, T.TEMP addrTemp, T.CONST 0, valid, invalid),
         T.LABEL invalid,
         T.EXP(Frame.externalCall("print", [unEx (strLit "Cannot access nil record.\n")])),
         T.EXP(Frame.externalCall("exit", [T.CONST 1])),
