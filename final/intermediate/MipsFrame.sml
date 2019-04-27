@@ -115,7 +115,7 @@ struct
   fun externalCall (s,args) = Tree.CALL(Tree.NAME(Temp.namedlabel ("tig_" ^ s)), rev args)
 
   
-  (* Regalloc spills calleesaves if necessary *)
+  (* Regalloc spills calleesaves if necessary 
 
   fun procEntryExit1 (frame, stm) = 
     let 
@@ -138,10 +138,10 @@ struct
       fun shiftToTemp (reg, access) = Tree.MOVE(Tree.TEMP reg, exp access (Tree.TEMP FP))
     in
       seq(viewShift @ (map shiftToMem regAccess) @ [stm] @ (map shiftToTemp regAccess))
-    end
+    end*)
 
 
-  (*
+  
   fun procEntryExit1 (frame, stm) = let
 
     fun getOffset(access) = 
@@ -161,7 +161,7 @@ struct
         map makeStm (rev (formals frame))
       end
 
-    (* View shift in frame arguments * )
+    (* View shift in frame arguments *)
     fun shiftToMem (reg, (statements, accesses)) = 
       let
         val access = allocLocal frame true
@@ -170,7 +170,7 @@ struct
         (statement::statements, (access, reg)::accesses)
       end
 
-    val (toMemStatements, argAccesses) = foldr shiftToMem ([], []) (RA::calleesaves)    (* foldr as lists are reversed * )
+    val (toMemStatements, argAccesses) = foldr shiftToMem ([], []) (RA::calleesaves)    (* foldr as lists are reversed *)
 
     fun shiftToTemp (access, reg) = Tree.MOVE(Tree.TEMP reg, Tree.MEM(Tree.BINOP(Tree.PLUS, Tree.TEMP(FP), Tree.CONST (getOffset access))))
 
@@ -178,7 +178,7 @@ struct
   in
     seq(viewShift @ toMemStatements @ [stm] @ toTempStatements)
   end
-  *)
+  
     
 	fun procEntryExit2 (frame, body) = body (* Deprecated: merged with procEntryExit3 epilog *)
 
