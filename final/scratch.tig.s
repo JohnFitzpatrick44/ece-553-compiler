@@ -1,20 +1,11 @@
 .globl main
 .data
-L1191:
-.word 1
-.ascii "c"
-L1190:
-.word 1
-.ascii "b"
-L1189:
-.word 1
-.ascii "a"
 .text
 tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -16
-L1199:
+L4154:
 move $a0, $a0
 move $a0, $ra
 sw $a0, -12($fp)
@@ -23,21 +14,19 @@ move $s1, $s1
 move $s2, $s2
 move $s3, $s3
 move $s4, $s4
-move $a3, $s5
-move $a2, $s6
-move $a1, $s7
-li $ra, 1
-li $a0, 2
-bgt $ra, $a0, L1195
-L1196:
-li $a0, 2
-blt $ra, $a0, L1192
-L1193:
-la $a0, L1191
+move $s5, $s5
+move $a3, $s6
+move $a2, $s7
+li $a0, 61
 move $a0, $a0
-L1194:
+move $a1, $fp
+jal L4150
+move $a0, $v0
 move $a0, $a0
-L1197:
+move $a0, $a0
+jal tig_chr
+move $a0, $v0
+move $a0, $a0
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -49,19 +38,126 @@ move $s1, $s1
 move $s2, $s2
 move $s3, $s3
 move $s4, $s4
-move $s5, $a3
-move $s6, $a2
-move $s7, $a1
-j L1198
-L1195:
-la $a0, L1189
+move $s5, $s5
+move $s6, $a3
+move $s7, $a2
+j L4153
+L4153:
+move $sp, $fp
+lw $fp, 0($sp)
+jr $ra
+L4150:
+sw $fp, 0($sp)
+move $fp, $sp
+addiu $sp, $sp, -20
+L4240:
 move $a0, $a0
-j L1197
-L1192:
-la $a0, L1190
+move $a1, $a1
+move $a1, $ra
+sw $a1, -16($fp)
+move $s0, $s0
+move $s1, $s1
+move $s2, $s2
+move $s3, $s3
+move $s4, $s4
+move $s5, $s5
+move $a3, $s6
+move $a2, $s7
+move $s6, $a0
+li $a0, 4
 move $a0, $a0
-j L1194
-L1198:
+move $a1, $fp
+jal L4151
+move $a0, $v0
+move $a0, $a0
+add $a0, $s6, $a0
+move $v0, $a0
+lw $a0, -16($fp)
+move $ra, $a0
+move $s0, $s0
+move $s1, $s1
+move $s2, $s2
+move $s3, $s3
+move $s4, $s4
+move $s5, $s5
+move $s6, $a3
+move $s7, $a2
+j L4239
+L4239:
+move $sp, $fp
+lw $fp, 0($sp)
+jr $ra
+L4151:
+sw $fp, 0($sp)
+move $fp, $sp
+addiu $sp, $sp, -20
+L4318:
+move $a0, $a0
+move $a1, $a1
+move $a1, $ra
+sw $a1, -16($fp)
+move $s0, $s0
+move $s1, $s1
+move $s2, $s2
+move $s3, $s3
+move $s4, $s4
+move $s5, $s5
+move $a3, $s6
+move $a2, $s7
+move $s6, $a0
+li $a0, 5
+move $a0, $a0
+move $a1, $fp
+jal L4152
+move $a0, $v0
+move $a0, $a0
+add $a0, $s6, $a0
+move $v0, $a0
+lw $a0, -16($fp)
+move $ra, $a0
+move $s0, $s0
+move $s1, $s1
+move $s2, $s2
+move $s3, $s3
+move $s4, $s4
+move $s5, $s5
+move $s6, $a3
+move $s7, $a2
+j L4317
+L4317:
+move $sp, $fp
+lw $fp, 0($sp)
+jr $ra
+L4152:
+sw $fp, 0($sp)
+move $fp, $sp
+addiu $sp, $sp, -12
+L4396:
+move $a0, $a0
+move $a1, $a1
+move $a1, $ra
+move $a2, $s0
+move $a3, $s1
+move $s2, $s2
+move $s3, $s3
+move $s4, $s4
+move $s5, $s5
+move $s6, $s6
+move $s7, $s7
+add $ra, $ra, $ra
+add $a0, $ra, $a0
+move $v0, $a0
+move $ra, $a1
+move $s0, $a2
+move $s1, $a3
+move $s2, $s2
+move $s3, $s3
+move $s4, $s4
+move $s5, $s5
+move $s6, $s6
+move $s7, $s7
+j L4395
+L4395:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra

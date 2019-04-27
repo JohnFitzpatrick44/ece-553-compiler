@@ -1,25 +1,21 @@
 .globl main
 .data
-L936:
+L634:
 .word 26
 .ascii "Cannot access nil record.
 "
-L933:
-.word 26
-.ascii "Cannot access nil record.
-"
-L930:
+L631:
 .word 8
 .ascii "Somebody"
-L929:
+L630:
 .word 26
 .ascii "Cannot access nil record.
 "
-L926:
+L627:
 .word 26
 .ascii "Cannot access nil record.
 "
-L923:
+L624:
 .word 6
 .ascii "Nobody"
 .text
@@ -27,7 +23,7 @@ tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -16
-L938:
+L636:
 move $a0, $a0
 move $a0, $ra
 sw $a0, -12($fp)
@@ -46,13 +42,12 @@ move $a0, $v0
 move $a0, $a0
 li $ra, 1000
 sw $ra, 0($a0)
-la $ra, L923
+la $ra, L624
 sw $ra, 4($a0)
 move $s5, $a0
-li $s6, 0
-bnez $s5, L924
-L925:
-la $a0, L926
+bnez $s5, L625
+L626:
+la $a0, L627
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -60,16 +55,16 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L924:
+L625:
 li $a0, 4
 add $a0, $s5, $a0
 lw $a0, 0($a0)
 move $a0, $a0
 jal tig_print
 move $a0, $v0
-bnez $s5, L927
-L928:
-la $a0, L929
+bnez $s5, L628
+L629:
+la $a0, L630
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -77,14 +72,14 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L927:
-la $ra, L930
+L628:
+la $ra, L631
 li $a0, 4
 add $a0, $s5, $a0
 sw $ra, 0($a0)
-bnez $s5, L931
-L932:
-la $a0, L933
+bnez $s5, L632
+L633:
+la $a0, L634
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -92,26 +87,9 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L931:
+L632:
 li $a0, 4
 add $a0, $s5, $a0
-lw $a0, 0($a0)
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-bnez $s6, L934
-L935:
-la $a0, L936
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-li $a0, 1
-move $a0, $a0
-jal tig_exit
-move $a0, $v0
-L934:
-li $a0, 4
-add $a0, $s6, $a0
 lw $a0, 0($a0)
 move $a0, $a0
 jal tig_print
@@ -127,8 +105,8 @@ move $s4, $s4
 move $s5, $a3
 move $s6, $a2
 move $s7, $a1
-j L937
-L937:
+j L635
+L635:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra

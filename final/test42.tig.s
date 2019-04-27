@@ -1,110 +1,110 @@
 .globl main
 .data
-L539:
+L2608:
 .word 27
 .ascii "Array index out of bounds.
 "
-L535:
+L2604:
 .word 26
 .ascii "Cannot access nil record.
 "
-L532:
+L2601:
 .word 27
 .ascii "Array index out of bounds.
 "
-L528:
+L2597:
 .word 26
 .ascii "Cannot access nil record.
 "
-L525:
+L2594:
 .word 27
 .ascii "Array index out of bounds.
 "
-L521:
+L2590:
 .word 26
 .ascii "Cannot access nil record.
 "
-L518:
+L2587:
 .word 27
 .ascii "Array index out of bounds.
 "
-L514:
+L2583:
 .word 26
 .ascii "Cannot access nil record.
 "
-L511:
+L2580:
 .word 3
 .ascii "sdf"
-L510:
+L2579:
 .word 26
 .ascii "Cannot access nil record.
 "
-L507:
+L2576:
 .word 3
 .ascii "sfd"
-L506:
+L2575:
 .word 27
 .ascii "Array index out of bounds.
 "
-L502:
+L2571:
 .word 26
 .ascii "Cannot access nil record.
 "
-L499:
+L2568:
 .word 27
 .ascii "Array index out of bounds.
 "
-L495:
+L2564:
 .word 26
 .ascii "Cannot access nil record.
 "
-L492:
+L2561:
 .word 27
 .ascii "Array index out of bounds.
 "
-L488:
+L2557:
 .word 4
 .ascii "kati"
-L487:
+L2556:
 .word 26
 .ascii "Cannot access nil record.
 "
-L484:
+L2553:
 .word 27
 .ascii "Array index out of bounds.
 "
-L480:
+L2549:
 .word 26
 .ascii "Cannot access nil record.
 "
-L477:
+L2546:
 .word 27
 .ascii "Array index out of bounds.
 "
-L473:
+L2542:
 .word 27
 .ascii "Array index out of bounds.
 "
-L469:
+L2538:
 .word 27
 .ascii "Array index out of bounds.
 "
-L465:
+L2534:
 .word 5
 .ascii "Allos"
-L464:
+L2533:
 .word 5
 .ascii "Kapou"
-L463:
+L2532:
 .word 7
 .ascii "Kapoios"
-L462:
+L2531:
 .word 0
 .ascii ""
-L461:
+L2530:
 .word 9
 .ascii "somewhere"
-L460:
+L2529:
 .word 5
 .ascii "aname"
 .text
@@ -112,7 +112,7 @@ tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -12
-L541:
+L2610:
 move $a0, $a0
 move $a0, $ra
 move $a0, $s0
@@ -142,9 +142,9 @@ li $a0, 0
 sw $a0, 0($a2)
 li $a0, 0
 sw $a0, 4($a2)
-la $a0, L461
+la $a0, L2530
 sw $a0, 8($a2)
-la $a0, L460
+la $a0, L2529
 sw $a0, 12($a2)
 move $a0, $a1
 move $a1, $a2
@@ -155,7 +155,7 @@ addi $a0, $a0, 4
 move $s0, $a0
 li $a0, 100
 move $a0, $a0
-la $a1, L462
+la $a1, L2531
 move $a1, $a1
 jal tig_initArray
 move $a0, $v0
@@ -171,9 +171,9 @@ li $a1, 44
 sw $a1, 0($a0)
 li $a1, 2432
 sw $a1, 4($a0)
-la $a1, L464
+la $a1, L2533
 sw $a1, 8($a0)
-la $a1, L463
+la $a1, L2532
 sw $a1, 12($a0)
 move $a1, $a0
 li $a0, 8
@@ -192,13 +192,13 @@ move $a0, $v0
 move $a0, $a0
 addi $a0, $a0, 4
 sw $a0, 0($a3)
-la $a0, L465
+la $a0, L2534
 sw $a0, 4($a2)
 move $a1, $a2
 lw $a0, -4($fp)
-bgez $a0, L466
-L467:
-la $a0, L469
+bgez $a0, L2535
+L2536:
+la $a0, L2538
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -206,16 +206,16 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L468:
+L2537:
 li $a1, 1
 li $a0, 0
 add $a0, $fp, $a0
 sw $a1, 0($a0)
 li $a1, 9
 lw $a0, -4($fp)
-blt $a1, $a0, L470
-L471:
-la $a0, L473
+blt $a1, $a0, L2539
+L2540:
+la $a0, L2542
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -223,16 +223,16 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L472:
+L2541:
 li $a1, 3
 li $a0, 36
 add $a0, $fp, $a0
 sw $a1, 0($a0)
-li $a1, 3
+li $a1, 5
 lw $a0, -4($s0)
-blt $a1, $a0, L474
-L475:
-la $a0, L477
+blt $a1, $a0, L2543
+L2544:
+la $a0, L2546
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -240,13 +240,13 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L476:
-li $a0, 12
+L2545:
+li $a0, 20
 add $a0, $s0, $a0
 lw $a0, 0($a0)
-bnez $a0, L478
-L479:
-la $a0, L480
+bnez $a0, L2547
+L2548:
+la $a0, L2549
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -254,30 +254,30 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L478:
-li $a1, 3
+L2547:
+li $a1, 5
 lw $a0, -4($s0)
-blt $a1, $a0, L475
-L474:
-li $a0, 3
-bltz $a0, L476
-L542:
-j L475
-L466:
+blt $a1, $a0, L2544
+L2543:
+li $a0, 5
+bgez $a0, L2545
+L2611:
+j L2544
+L2535:
 li $a0, 0
-bgez $a0, L468
-L543:
-j L467
-L470:
+bgez $a0, L2537
+L2612:
+j L2536
+L2539:
 li $a0, 9
-bltz $a0, L472
-L544:
-j L471
-L481:
+bgez $a0, L2541
+L2613:
+j L2540
+L2550:
 li $a0, 3
-bltz $a0, L483
-L482:
-la $a0, L484
+bgez $a0, L2552
+L2551:
+la $a0, L2553
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -285,13 +285,13 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L483:
+L2552:
 li $a0, 12
 add $a0, $s0, $a0
 lw $a0, 0($a0)
-bnez $a0, L485
-L486:
-la $a0, L487
+bnez $a0, L2554
+L2555:
+la $a0, L2556
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -299,17 +299,17 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L485:
+L2554:
 li $a1, 3
 lw $a0, -4($s0)
-blt $a1, $a0, L481
-L545:
-j L482
-L489:
+blt $a1, $a0, L2550
+L2614:
+j L2551
+L2558:
 li $a0, 3
-bltz $a0, L491
-L490:
-la $a0, L492
+bgez $a0, L2560
+L2559:
+la $a0, L2561
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -317,13 +317,13 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L491:
+L2560:
 li $a0, 12
 add $a0, $s0, $a0
 lw $a0, 0($a0)
-bnez $a0, L493
-L494:
-la $a0, L495
+bnez $a0, L2562
+L2563:
+la $a0, L2564
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -331,17 +331,17 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L493:
+L2562:
 li $a1, 3
 lw $a0, -4($s0)
-blt $a1, $a0, L489
-L546:
-j L490
-L496:
+blt $a1, $a0, L2558
+L2615:
+j L2559
+L2565:
 li $a0, 1
-bltz $a0, L498
-L497:
-la $a0, L499
+bgez $a0, L2567
+L2566:
+la $a0, L2568
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -349,13 +349,13 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L498:
+L2567:
 li $a0, 4
 add $a0, $s0, $a0
 lw $a0, 0($a0)
-bnez $a0, L500
-L501:
-la $a0, L502
+bnez $a0, L2569
+L2570:
+la $a0, L2571
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -363,17 +363,17 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L500:
+L2569:
 li $a1, 1
 lw $a0, -4($s0)
-blt $a1, $a0, L496
-L547:
-j L497
-L503:
+blt $a1, $a0, L2565
+L2616:
+j L2566
+L2572:
 li $a0, 34
-bltz $a0, L505
-L504:
-la $a0, L506
+bgez $a0, L2574
+L2573:
+la $a0, L2575
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -381,14 +381,14 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L505:
-la $a2, L507
+L2574:
+la $a2, L2576
 li $a0, 136
 add $a0, $a1, $a0
 sw $a2, 0($a0)
-bnez $a1, L508
-L509:
-la $a0, L510
+bnez $a1, L2577
+L2578:
+la $a0, L2579
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -396,14 +396,14 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L508:
-la $a2, L511
+L2577:
+la $a2, L2580
 li $a0, 12
 add $a0, $a1, $a0
 sw $a2, 0($a0)
-bnez $a1, L512
-L513:
-la $a0, L514
+bnez $a1, L2581
+L2582:
+la $a0, L2583
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -411,14 +411,14 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L512:
+L2581:
 li $a0, 0
 add $a0, $a1, $a0
 lw $a0, 0($a0)
 lw $a0, -4($a0)
-bgez $a0, L515
-L516:
-la $a0, L518
+bgez $a0, L2584
+L2585:
+la $a0, L2587
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -426,17 +426,17 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L517:
-bnez $a1, L512
-L548:
-j L513
-L515:
+L2586:
+bnez $a1, L2581
+L2617:
+j L2582
+L2584:
 li $a0, 0
-bgez $a0, L517
-L549:
-j L516
-L520:
-la $a0, L521
+bgez $a0, L2586
+L2618:
+j L2585
+L2589:
+la $a0, L2590
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -444,47 +444,14 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L519:
-li $a0, 0
-add $a0, $a1, $a0
-lw $a0, 0($a0)
-lw $a0, -4($a0)
-bgez $a0, L522
-L523:
-la $a0, L525
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-li $a0, 1
-move $a0, $a0
-jal tig_exit
-move $a0, $v0
-L524:
-bnez $a1, L519
-L550:
-j L520
-L522:
-li $a0, 0
-bgez $a0, L524
-L551:
-j L523
-L527:
-la $a0, L528
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-li $a0, 1
-move $a0, $a0
-jal tig_exit
-move $a0, $v0
-L526:
+L2588:
 li $a0, 0
 add $a0, $a1, $a0
 lw $a0, 0($a0)
 lw $a0, -4($a0)
-bgez $a0, L529
-L530:
-la $a0, L532
+bgez $a0, L2591
+L2592:
+la $a0, L2594
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -492,17 +459,17 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L531:
-bnez $a1, L526
-L552:
-j L527
-L529:
+L2593:
+bnez $a1, L2588
+L2619:
+j L2589
+L2591:
 li $a0, 0
-bgez $a0, L531
-L553:
-j L530
-L534:
-la $a0, L535
+bgez $a0, L2593
+L2620:
+j L2592
+L2596:
+la $a0, L2597
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -510,15 +477,48 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L533:
+L2595:
+li $a0, 0
+add $a0, $a1, $a0
+lw $a0, 0($a0)
+lw $a0, -4($a0)
+bgez $a0, L2598
+L2599:
+la $a0, L2601
+move $a0, $a0
+jal tig_print
+move $a0, $v0
+li $a0, 1
+move $a0, $a0
+jal tig_exit
+move $a0, $v0
+L2600:
+bnez $a1, L2595
+L2621:
+j L2596
+L2598:
+li $a0, 0
+bgez $a0, L2600
+L2622:
+j L2599
+L2603:
+la $a0, L2604
+move $a0, $a0
+jal tig_print
+move $a0, $v0
+li $a0, 1
+move $a0, $a0
+jal tig_exit
+move $a0, $v0
+L2602:
 li $a2, 2
 li $a0, 0
 add $a0, $a1, $a0
 lw $a0, 0($a0)
 lw $a0, -4($a0)
-blt $a2, $a0, L536
-L537:
-la $a0, L539
+blt $a2, $a0, L2605
+L2606:
+la $a0, L2608
 move $a0, $a0
 jal tig_print
 move $a0, $v0
@@ -526,16 +526,16 @@ li $a0, 1
 move $a0, $a0
 jal tig_exit
 move $a0, $v0
-L538:
-bnez $a1, L533
-L554:
-j L534
-L536:
+L2607:
+bnez $a1, L2602
+L2623:
+j L2603
+L2605:
 li $a0, 2
-bltz $a0, L538
-L555:
-j L537
-L540:
+bgez $a0, L2607
+L2624:
+j L2606
+L2609:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra

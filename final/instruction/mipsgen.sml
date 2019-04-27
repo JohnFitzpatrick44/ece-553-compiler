@@ -84,46 +84,46 @@ struct
 				(* conditionals *)
 				(* comparing 0 *)
 
-				| munchStm (T.CJUMP(T.GE, e, T.CONST 0, t, f)) = emit(oper("bgez `s0, `j0", [], [munchExp e], SOME [t, f]))
-				| munchStm (T.CJUMP(T.GE, T.CONST 0, e, t, f)) = emit(oper("bltz `s0, `j0", [], [munchExp e], SOME [t, f]))
+				| munchStm (T.CJUMP(T.GE, e, T.CONST 0, t, f)) = emit(oper("bgez `s0, `j0\nb `j1", [], [munchExp e], SOME [t, f]))
+				| munchStm (T.CJUMP(T.GE, T.CONST 0, e, t, f)) = emit(oper("bltz `s0, `j0\nb `j1", [], [munchExp e], SOME [t, f]))
 
-        | munchStm (T.CJUMP(T.GT, e, T.CONST 0, t, f)) = emit(oper("bgtz `s0, `j0", [], [munchExp e], SOME [t, f]))
-        | munchStm (T.CJUMP(T.GT, T.CONST 0, e, t, f)) = emit(oper("blez `s0, `j0", [], [munchExp e], SOME [t, f]))
+        | munchStm (T.CJUMP(T.GT, e, T.CONST 0, t, f)) = emit(oper("bgtz `s0, `j0\nb `j1", [], [munchExp e], SOME [t, f]))
+        | munchStm (T.CJUMP(T.GT, T.CONST 0, e, t, f)) = emit(oper("blez `s0, `j0\nb `j1", [], [munchExp e], SOME [t, f]))
 
-        | munchStm (T.CJUMP(T.LE, e, T.CONST 0, t, f)) = emit(oper("blez `s0, `j0", [], [munchExp e], SOME [t, f]))
-        | munchStm (T.CJUMP(T.LE, T.CONST 0, e, t, f)) = emit(oper("bgtz `s0, `j0", [], [munchExp e], SOME [t, f]))
+        | munchStm (T.CJUMP(T.LE, e, T.CONST 0, t, f)) = emit(oper("blez `s0, `j0\nb `j1", [], [munchExp e], SOME [t, f]))
+        | munchStm (T.CJUMP(T.LE, T.CONST 0, e, t, f)) = emit(oper("bgtz `s0, `j0\nb `j1", [], [munchExp e], SOME [t, f]))
 
-        | munchStm (T.CJUMP(T.LT, e, T.CONST 0, t, f)) = emit(oper("bltz `s0, `j0", [], [munchExp e], SOME [t, f]))
-        | munchStm (T.CJUMP(T.LT, T.CONST 0, e, t, f)) = emit(oper("bgez `s0, `j0", [], [munchExp e], SOME [t, f]))
+        | munchStm (T.CJUMP(T.LT, e, T.CONST 0, t, f)) = emit(oper("bltz `s0, `j0\nb `j1", [], [munchExp e], SOME [t, f]))
+        | munchStm (T.CJUMP(T.LT, T.CONST 0, e, t, f)) = emit(oper("bgez `s0, `j0\nb `j1", [], [munchExp e], SOME [t, f]))
 
-        | munchStm (T.CJUMP(T.EQ, e, T.CONST 0, t, f)) = emit(oper("beqz `s0, `j0", [], [munchExp e], SOME [t, f]))
-        | munchStm (T.CJUMP(T.EQ, T.CONST 0, e, t, f)) = emit(oper("beqz `s0, `j0", [], [munchExp e], SOME [t, f]))
+        | munchStm (T.CJUMP(T.EQ, e, T.CONST 0, t, f)) = emit(oper("beqz `s0, `j0\nb `j1", [], [munchExp e], SOME [t, f]))
+        | munchStm (T.CJUMP(T.EQ, T.CONST 0, e, t, f)) = emit(oper("beqz `s0, `j0\nb `j1", [], [munchExp e], SOME [t, f]))
 
-        | munchStm (T.CJUMP(T.NE, e, T.CONST 0, t, f)) = emit(oper("bnez `s0, `j0", [], [munchExp e], SOME [t, f]))
-        | munchStm (T.CJUMP(T.NE, T.CONST 0, e, t, f)) = emit(oper("bnez `s0, `j0", [], [munchExp e], SOME [t, f]))
+        | munchStm (T.CJUMP(T.NE, e, T.CONST 0, t, f)) = emit(oper("bnez `s0, `j0\nb `j1", [], [munchExp e], SOME [t, f]))
+        | munchStm (T.CJUMP(T.NE, T.CONST 0, e, t, f)) = emit(oper("bnez `s0, `j0\nb `j1", [], [munchExp e], SOME [t, f]))
 
 
         (* general conditional *)
 				
-				| munchStm(T.CJUMP(T.LT, e1, e2, t, f)) = emit(oper("blt `s0, `s1, `j0", [], [munchExp e1, munchExp e2], SOME [t, f]))
+				| munchStm(T.CJUMP(T.LT, e1, e2, t, f)) = emit(oper("blt `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
 
-				| munchStm(T.CJUMP(T.LE, e1, e2, t, f)) = emit(oper("ble `s0, `s1, `j0", [], [munchExp e1, munchExp e2], SOME [t, f]))
+				| munchStm(T.CJUMP(T.LE, e1, e2, t, f)) = emit(oper("ble `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
 
-				| munchStm(T.CJUMP(T.GT, e1, e2, t, f)) = emit(oper("bgt `s0, `s1, `j0", [], [munchExp e1, munchExp e2], SOME [t, f]))
+				| munchStm(T.CJUMP(T.GT, e1, e2, t, f)) = emit(oper("bgt `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
 
-				| munchStm(T.CJUMP(T.GE, e1, e2, t, f)) = emit(oper("bge `s0, `s1, `j0", [], [munchExp e1, munchExp e2], SOME [t, f]))
+				| munchStm(T.CJUMP(T.GE, e1, e2, t, f)) = emit(oper("bge `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
 
-				| munchStm(T.CJUMP(T.ULT, e1, e2, t, f)) = emit(oper("bltu `s0, `s1, `j0", [], [munchExp e1, munchExp e2], SOME [t, f]))
+				| munchStm(T.CJUMP(T.ULT, e1, e2, t, f)) = emit(oper("bltu `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
 
-				| munchStm(T.CJUMP(T.ULE, e1, e2, t, f)) = emit(oper("bleu `s0, `s1, `j0", [], [munchExp e1, munchExp e2], SOME [t, f]))
+				| munchStm(T.CJUMP(T.ULE, e1, e2, t, f)) = emit(oper("bleu `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
 
-				| munchStm(T.CJUMP(T.UGT, e1, e2, t, f)) = emit(oper("bgtu `s0, `s1, `j0", [], [munchExp e1, munchExp e2], SOME [t, f]))
+				| munchStm(T.CJUMP(T.UGT, e1, e2, t, f)) = emit(oper("bgtu `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
 
-				| munchStm(T.CJUMP(T.UGE, e1, e2, t, f)) = emit(oper("bgeu `s0, `s1, `j0", [], [munchExp e1, munchExp e2], SOME [t, f]))
+				| munchStm(T.CJUMP(T.UGE, e1, e2, t, f)) = emit(oper("bgeu `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
 
-				| munchStm(T.CJUMP(T.EQ, e1, e2, t, f)) = emit(oper("beq `s0, `s1, `j0", [], [munchExp e1, munchExp e2], SOME [t, f]))
+				| munchStm(T.CJUMP(T.EQ, e1, e2, t, f)) = emit(oper("beq `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
 
-				| munchStm(T.CJUMP(T.NE, e1, e2, t, f)) = emit(oper("bne `s0, `s1, `j0", [], [munchExp e1, munchExp e2], SOME [t, f]))
+				| munchStm(T.CJUMP(T.NE, e1, e2, t, f)) = emit(oper("bne `s0, `s1, `j0\nb `j1", [], [munchExp e1, munchExp e2], SOME [t, f]))
 
 				| munchStm(T.JUMP(T.NAME(lab), labs)) = emit(oper("j `j0", [], [], SOME([lab])))
 

@@ -1,102 +1,47 @@
 .globl main
 .data
-L1444:
-.word 27
-.ascii "Array index out of bounds.
-"
-L1440:
-.word 27
-.ascii "Array index out of bounds.
-"
 .text
 tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
-addiu $sp, $sp, -16
-L1446:
+addiu $sp, $sp, -12
+L5440:
 move $a0, $a0
 move $a0, $ra
-sw $a0, -12($fp)
-move $s0, $s0
-move $s1, $s1
-move $s2, $s2
+move $a1, $s0
+move $a2, $s1
+move $a3, $s2
 move $s3, $s3
 move $s4, $s4
 move $s5, $s5
-move $a3, $s6
-move $a2, $s7
-li $a0, 10
-move $a0, $a0
-li $a1, 0
-move $a1, $a1
-jal tig_initArray
-move $a0, $v0
-move $a0, $a0
-addi $a0, $a0, 4
-move $a1, $a0
-li $ra, 10
-lw $a0, -4($a1)
-blt $ra, $a0, L1437
-L1438:
-la $a0, L1440
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-li $a0, 1
-move $a0, $a0
-jal tig_exit
-move $a0, $v0
-L1439:
-li $ra, 70
-li $a0, 40
-add $a0, $a1, $a0
-sw $ra, 0($a0)
-li $ra, 3
-lw $a0, -4($a1)
-blt $ra, $a0, L1441
-L1442:
-la $a0, L1444
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-li $a0, 1
-move $a0, $a0
-jal tig_exit
-move $a0, $v0
-L1443:
-li $a0, 12
-add $a0, $a1, $a0
-lw $a0, 0($a0)
-move $a0, $a0
-jal tig_chr
-move $a0, $v0
-move $a0, $a0
-move $a0, $a0
-jal tig_print
-move $a0, $v0
-move $v0, $a1
-lw $a0, -12($fp)
+move $s6, $s6
+move $s7, $s7
+li $ra, 0
+li $s0, 0
+li $s1, 100
+ble $s0, $s1, L5437
+L5436:
+li $v0, 0
 move $ra, $a0
-move $s0, $s0
-move $s1, $s1
-move $s2, $s2
+move $s0, $a1
+move $s1, $a2
+move $s2, $a3
 move $s3, $s3
 move $s4, $s4
 move $s5, $s5
-move $s6, $a3
-move $s7, $a2
-j L1445
-L1437:
-li $a0, 10
-bgez $a0, L1439
-L1447:
-j L1438
-L1441:
-li $a0, 3
-bgez $a0, L1443
-L1448:
-j L1442
-L1445:
+move $s6, $s6
+move $s7, $s7
+j L5439
+L5437:
+addi $ra, $ra, 1
+move $ra, $ra
+li $s1, 100
+blt $s0, $s1, L5436
+L5438:
+addi $s0, $s0, 1
+move $s0, $s0
+j L5437
+L5439:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra
