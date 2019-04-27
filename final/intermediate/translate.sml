@@ -150,7 +150,7 @@ fun subscriptVar (addr, index) =
                                         T.CONST Frame.wordSize)))
    in 
     Ex(T.ESEQ(seq [
-        T.CJUMP (T.LT, unEx index, sizeExp, valid, invalid),
+        T.CJUMP (T.GE, unEx index, sizeExp, invalid, valid),
         T.LABEL valid,
         T.CJUMP (T.LT, unEx index, T.CONST 0, invalid, exit),
         T.LABEL invalid,

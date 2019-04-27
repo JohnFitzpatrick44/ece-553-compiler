@@ -26,7 +26,7 @@ struct
 
 
 			fun munchArgs(idx, []) = []
-			  | munchArgs(idx, arg::args) = (*(munchExp arg) :: (munchArgs (idx+1, args))*)
+			  | munchArgs(idx, arg::args) = 
 			  	let
 			  		val src = T.TEMP (munchExp arg)
 			  		val dst = if idx < (List.length Frame.argregs) then
