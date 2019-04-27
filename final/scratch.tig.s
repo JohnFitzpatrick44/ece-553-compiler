@@ -1,12 +1,15 @@
 .globl main
 .data
-L2618:
+L108:
+.word 2
+.ascii "no"
+L107:
 .word 3
 .ascii "yes"
-L2617:
+L106:
 .word 1
-.ascii "a"
-L2616:
+.ascii "b"
+L105:
 .word 1
 .ascii "a"
 .text
@@ -14,7 +17,7 @@ tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -16
-L2622:
+L113:
 sw $a0, -8($fp)
 move $a0, $ra
 sw $a0, -12($fp)
@@ -23,14 +26,26 @@ move $s1, $s1
 move $s2, $s2
 move $s3, $s3
 move $s4, $s4
-move $a3, $s5
-move $a2, $s6
-move $a1, $s7
-la $ra, L2616
-la $a0, L2617
-beq $ra, $a0, L2619
-L2620:
-li $v0, 0
+move $s5, $s5
+move $a3, $s6
+move $a2, $s7
+la $a0, L105
+move $a0, $a0
+la $a1, L106
+move $a1, $a1
+jal tig_stringEqual
+move $a0, $v0
+move $a0, $a0
+xori $a0, $a0, 1
+bnez $a0, L109
+L110:
+la $a0, L108
+move $a0, $a0
+jal tig_print
+move $a0, $v0
+move $a0, $a0
+L111:
+move $v0, $a0
 lw $a0, -12($fp)
 move $ra, $a0
 move $s0, $s0
@@ -38,17 +53,18 @@ move $s1, $s1
 move $s2, $s2
 move $s3, $s3
 move $s4, $s4
-move $s5, $a3
-move $s6, $a2
-move $s7, $a1
-j L2621
-L2619:
-la $a0, L2618
+move $s5, $s5
+move $s6, $a3
+move $s7, $a2
+j L112
+L109:
+la $a0, L107
 move $a0, $a0
 jal tig_print
 move $a0, $v0
-j L2620
-L2621:
+move $a0, $a0
+j L111
+L112:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra
