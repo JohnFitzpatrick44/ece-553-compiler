@@ -5,7 +5,7 @@ tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -12
-L48:
+L4:
 move $a0, $a0
 move $a0, $ra
 move $a1, $s0
@@ -19,8 +19,8 @@ move $s7, $s7
 li $ra, 0
 li $s0, 0
 li $s1, 100
-ble $s0, $s1, L45
-L44:
+ble $s0, $s1, L1
+L0:
 li $v0, 0
 move $ra, $a0
 move $s0, $a1
@@ -31,17 +31,17 @@ move $s4, $s4
 move $s5, $s5
 move $s6, $s6
 move $s7, $s7
-j L47
-L45:
+j L3
+L1:
 addi $ra, $ra, 1
 move $ra, $ra
 li $ra, 100
-blt $s0, $ra, L44
-L46:
+bge $s0, $ra, L0
+L2:
 addi $s0, $s0, 1
 move $s0, $s0
-j L45
-L47:
+j L1
+L3:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra
