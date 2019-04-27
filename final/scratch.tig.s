@@ -5,10 +5,10 @@ tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
 addiu $sp, $sp, -16
-L1266:
+L4:
 sw $a0, -8($fp)
-move $a1, $ra
-sw $a1, -12($fp)
+move $a0, $ra
+sw $a0, -12($fp)
 move $s0, $s0
 move $s1, $s1
 move $s2, $s2
@@ -17,11 +17,12 @@ move $s4, $s4
 move $a3, $s5
 move $a2, $s6
 move $a1, $s7
-li $ra, 70
-li $s5, 75
-move $s6, $ra
-ble $s6, $s5, L1263
-L1262:
+li $a0, 70
+move $s6, $a0
+li $s5, 85
+move $a0, $s6
+ble $s6, $s5, L1
+L0:
 li $v0, 0
 lw $a0, -12($fp)
 move $ra, $a0
@@ -33,8 +34,8 @@ move $s4, $s4
 move $s5, $a3
 move $s6, $a2
 move $s7, $a1
-j L1265
-L1263:
+j L3
+L1:
 move $a0, $a0
 jal tig_chr
 move $a0, $v0
@@ -42,12 +43,13 @@ move $a0, $a0
 move $a0, $a0
 jal tig_print
 move $a0, $v0
-blt $s6, $s5, L1262
-L1264:
-addi $ra, $s6, 1
-move $s6, $ra
-j L1263
-L1265:
+blt $s6, $s5, L0
+L2:
+addi $a0, $s6, 1
+move $s6, $a0
+move $a0, $s6
+j L1
+L3:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra

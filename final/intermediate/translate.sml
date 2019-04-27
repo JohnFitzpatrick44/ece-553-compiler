@@ -288,7 +288,6 @@ fun forExp(idxExp, loExp, hiExp, body, exit) =
     val loTemp = Temp.newtemp()
     val hiTemp = Temp.newtemp()
     val start = Temp.newlabel()
-    val increment = Temp.newlabel()
   in
     Nx(seq [T.MOVE (T.TEMP loTemp, unEx loExp),
             T.MOVE (T.TEMP index, T.TEMP loTemp),
@@ -297,11 +296,9 @@ fun forExp(idxExp, loExp, hiExp, body, exit) =
             T.CJUMP (T.LE, T.TEMP index, T.TEMP hiTemp, start, exit),
             T.LABEL start,
             unNx body,
-            T.CJUMP (T.LT, T.TEMP index, T.TEMP hiTemp, increment, exit),
-            T.LABEL increment,
             T.MOVE (T.TEMP index, T.BINOP (T.PLUS, T.TEMP index, T.CONST 1)),
             T.MOVE (unEx idxExp, T.TEMP index),
-            T.JUMP (T.NAME start, [start]),
+            T.CJUMP (T.LT, T.TEMP index, T.TEMP hiTemp, start, exit),
             T.LABEL exit])
   end
 
