@@ -4,85 +4,82 @@
 tig_main:
 sw $fp, 0($sp)
 move $fp, $sp
-addiu $sp, $sp, -16
-L1712:
-move $a0, $a0
-move $a0, $ra
-sw $a0, -12($fp)
-move $s0, $s0
-move $s1, $s1
-move $s2, $s2
-move $s3, $s3
-move $s4, $s4
-move $s5, $s5
-move $a3, $s6
-move $a2, $s7
-li $a0, 10
-move $a0, $a0
+addiu $sp, $sp, -48
+L547:
+move $t0, $a0
+sw $ra, -44($fp)
+sw $s0, -40($fp)
+sw $s1, -36($fp)
+sw $s2, -32($fp)
+sw $s3, -28($fp)
+sw $s4, -24($fp)
+sw $s5, -20($fp)
+sw $s6, -16($fp)
+sw $s7, -12($fp)
+li $s0, 10
+move $a0, $s0
 move $a1, $fp
-jal L1707
-move $a0, $v0
-move $v0, $a0
-lw $a0, -12($fp)
-move $ra, $a0
-move $s0, $s0
-move $s1, $s1
-move $s2, $s2
-move $s3, $s3
-move $s4, $s4
-move $s5, $s5
-move $s6, $a3
-move $s7, $a2
-j L1711
-L1711:
+jal L542
+move $s0, $v0
+move $v0, $s0
+lw $ra, -44($fp)
+lw $s0, -40($fp)
+lw $s1, -36($fp)
+lw $s2, -32($fp)
+lw $s3, -28($fp)
+lw $s4, -24($fp)
+lw $s5, -20($fp)
+lw $s6, -16($fp)
+lw $s7, -12($fp)
+j L546
+L546:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra
-L1707:
+L542:
 sw $fp, 0($sp)
 move $fp, $sp
-addiu $sp, $sp, -16
-L1782:
-move $a0, $a0
-move $a1, $a1
-move $a1, $ra
-sw $a1, -12($fp)
-move $s0, $s0
+addiu $sp, $sp, -48
+L582:
+move $t1, $a0
+move $t0, $a1
+sw $ra, -44($fp)
+sw $s0, -40($fp)
+sw $s1, -36($fp)
+sw $s2, -32($fp)
+sw $s3, -28($fp)
+sw $s4, -24($fp)
+sw $s5, -20($fp)
+sw $s6, -16($fp)
+sw $s7, -12($fp)
+beqz $t1, L543
+L544:
+move $s0, $t1
+addi $s1, $t1, -1
+move $a0, $s1
+move $a1, $t0
+jal L542
+move $s1, $v0
 move $s1, $s1
-move $s2, $s2
-move $s3, $s3
-move $s4, $s4
-move $s5, $s5
-move $a3, $s6
-move $a2, $s7
-beqz $a0, L1708
-L1709:
-move $s6, $a0
-addi $a0, $a0, -1
-move $a0, $a0
-move $a1, $a1
-jal L1707
-move $a0, $v0
-move $a0, $a0
-add $a0, $s6, $a0
-move $a0, $a0
-L1710:
-move $v0, $a0
-lw $a0, -12($fp)
-move $ra, $a0
+mult $s0, $s1
+mflo $s0
 move $s0, $s0
-move $s1, $s1
-move $s2, $s2
-move $s3, $s3
-move $s4, $s4
-move $s5, $s5
-move $s6, $a3
-move $s7, $a2
-j L1781
-L1708:
-li $a0, 1
-j L1710
-L1781:
+L545:
+move $v0, $s0
+lw $ra, -44($fp)
+lw $s0, -40($fp)
+lw $s1, -36($fp)
+lw $s2, -32($fp)
+lw $s3, -28($fp)
+lw $s4, -24($fp)
+lw $s5, -20($fp)
+lw $s6, -16($fp)
+lw $s7, -12($fp)
+j L581
+L543:
+li $s0, 1
+j L545
+L581:
 move $sp, $fp
 lw $fp, 0($sp)
 jr $ra
