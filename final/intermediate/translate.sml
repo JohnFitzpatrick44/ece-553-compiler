@@ -282,22 +282,30 @@ fun whileExp(test, body, exit) =
              T.LABEL exit])
   end
 
+
 fun forExp(idxExp, loExp, hiExp, body, exit) = 
   let 
+    val index = unEx idxExp
     val loTemp = Temp.newtemp()
     val hiTemp = Temp.newtemp()
     val start = Temp.newlabel()
+    val increment = Temp.newlabel()
   in
     Nx(seq [T.MOVE (T.TEMP loTemp, unEx loExp),
             T.MOVE (T.TEMP hiTemp, unEx hiExp),
-            T.MOVE (unEx idxExp, T.TEMP loTemp),
-            T.CJUMP (T.LE, unEx idxExp, T.TEMP hiTemp, start, exit),
+            T.MOVE (index, T.TEMP loTemp),
+            T.CJUMP (T.LE, index, T.TEMP hiTemp, start, exit),
             T.LABEL start,
             unNx body,
-            T.MOVE (unEx idxExp, T.BINOP (T.PLUS, unEx idxExp, T.CONST 1)),
-            T.CJUMP (T.LE, unEx idxExp, T.TEMP hiTemp, start, exit),
+            T.CJUMP (T.GE, index, T.TEMP hiTemp, exit, increment),
+            T.LABEL increment,
+            T.MOVE (index, T.BINOP (T.PLUS, index, T.CONST 1)),
+            T.JUMP (T.NAME start, [start]),
             T.LABEL exit])
   end
+
+
+
 
 fun recordExp(fields) = 
   let
