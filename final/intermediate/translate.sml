@@ -287,7 +287,7 @@ fun forExp(idxExp, loExp, hiExp, body, exit) =
             T.CJUMP (T.LE, index, hi, start, exit),
             T.LABEL start,
             unNx body,
-            T.CJUMP (T.LT, index, hi, increment, exit),
+            T.CJUMP (T.GE, index, hi, exit, increment),
             T.LABEL increment,
             T.MOVE (index, T.BINOP (T.PLUS, index, T.CONST 1)),
             T.JUMP (T.NAME start, [start]),
