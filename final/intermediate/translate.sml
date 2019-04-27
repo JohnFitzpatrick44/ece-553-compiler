@@ -155,7 +155,7 @@ fun subscriptVar (addr, index) =
     Ex(T.ESEQ(seq [
         T.MOVE (T.TEMP addrTemp, unEx addr),
         T.MOVE (T.TEMP indexTemp, unEx index),
-        T.MOVE (T.TEMP sizeTemp, T.MEM(T.BINOP(T.MINUS, addrTemp, T.CONST Frame.wordSize)))
+        T.MOVE (T.TEMP sizeTemp, T.MEM(T.BINOP(T.MINUS, T.TEMP addrTemp, T.CONST Frame.wordSize)))
         T.CJUMP (T.LT, T.TEMP indexTemp, T.TEMP sizeTemp, valid, invalid),
         T.LABEL valid,
         T.CJUMP (T.GE, T.TEMP indexTemp, T.CONST 0, exit, invalid),
